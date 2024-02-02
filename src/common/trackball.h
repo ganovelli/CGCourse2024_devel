@@ -16,6 +16,11 @@ class trackball {
 
 	/* matrix to transform the scene according to the trackball: scaling only*/
 	glm::mat4  scaling_matrix;
+
+	/* matrix to transform the scene according to the trackball: translation only*/
+	glm::mat4  translation_matrix;
+
+
 	float scaling_factor;
 
 	/* trackball center */
@@ -66,6 +71,7 @@ public:
 	void set_center_radius(glm::vec3 c, float r) {
 		center = c;
 		radius = r;
+		translation_matrix = glm::translate(glm::mat4(1.f), center);
 		reset();
 	}
 
@@ -106,6 +112,6 @@ public:
 	}
 
 	glm::mat4 matrix() {
-		return scaling_matrix*rotation_matrix;
+		return translation_matrix*scaling_matrix* rotation_matrix*glm::inverse(translation_matrix);
 	}
 };

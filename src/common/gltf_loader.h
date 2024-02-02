@@ -149,14 +149,6 @@ struct gltf_model {
                 for (int i = 0; i < n_vert;++i)
                     memcpy_s(& _data[i*16],12, &model.buffers[buffer].data[bufferviewOffset+accessor.byteOffset + i*12 ],12);
                
-                if(0)
-                for (int i = 0; i < n_vert;++i)
-                {
-                    float x = *(float*)(&_data[i * 16]);
-                    float y = *(float*)(&_data[i * 16+4]);
-                    float z = *(float*)(&_data[i * 16+8]);
-                    printf("%d: %f %f %f \n", i,x, y, z);
-                }
 
                // accessor.count
                 //accessor.componentType, & model.buffers[buffer].data[0];
@@ -209,11 +201,8 @@ struct gltf_model {
 
         n_tri = indexAccessor.count / 3;
 
-        
-
         // size of the texture to contain the data. Every pixels store the indices for one trinagles in its rgb components
         texture_height = n_tri / max_texture_width + 1;
-
         
         // accessor.count how many indices
         // 4 = 3 component + 1 padding because shader does not support rgb32i (without a)
@@ -232,16 +221,6 @@ struct gltf_model {
         }
         check_gl_errors(__LINE__, __FILE__);
     
- if(0)
-     for (int i = 0; i < n_tri;++i)
-        {
-            int x = ((int*)_data)[i * 4];
-            int y = ((int*)_data)[i * 4 + 1];
-            int z = ((int*)_data)[i * 4 + 2];
-            int _ = ((int*)_data)[i * 4 + 3];
-            printf("%d: %d %d %d %d \n", i, x, y, z,_);
-        }
-
         
         glGenTextures(1, &texId);
         glBindTexture(GL_TEXTURE_2D, texId);    

@@ -17,6 +17,10 @@ uniform int uWidth;
 uniform int uNTriangles;
 uniform vec4 uBbox;
 
+uniform mat4 uView;
+uniform mat4 uModel;
+uniform mat4 uTrackball;
+
 #define MAX_BOUNCES 1
 #define LAMBERTIAN 0
 #define EMISSIVE 1
@@ -345,6 +349,13 @@ nodetype up_or_next(nodetype n){
 bool hit_scene(in Ray r,in  float m, in float M, inout hit_info nfo){
  hit_info nfoT;
  nfo.t = M;
+
+ mat4 mvm = uView*uTrackball*uModel;
+ mat4 mvm_1 = inverse(mvm);
+
+ r.pos = (mvm_1*vec4(r.pos,1.f)).xyz;
+ r.dir = (mvm_1*vec4(r.dir,0.f)).xyz;
+
  r.pos += m*r.dir;
 
 // test all the elments of the scene
@@ -379,7 +390,7 @@ bool hit_scene(in Ray r,in  float m, in float M, inout hit_info nfo){
 // if(false)
  do{
     n_ite ++;
-    if(cn.going_up || !intersect_cube(r,cn.pos*0.125-vec3(0,0,4.0) ,cn.size*0.125 )){
+    if(cn.going_up || !intersect_cube(r,cn.pos ,cn.size)){
          cn = up_or_next(cn);
     } 
     else
@@ -401,16 +412,11 @@ bool hit_scene(in Ray r,in  float m, in float M, inout hit_info nfo){
                     p1 = imageLoad(imgInputPos,id2tc(ids.y));
                     p2 = imageLoad(imgInputPos,id2tc(ids.z));
    
-                    // hardcoded per il torus (da aggiungere le transf )
-                    p0 *=0.125;
-                    p1 *=0.125;
-                    p2 *=0.125;
- 
-                    p0.z -= 4.0;
-                    p1.z -= 4.0;
-                    p2.z -= 4.0;
-                    //
-                    
+  
+//                    p0 = (uModel* vec4(p0.xyz,1.f)); 
+//                    p1 = (uModel* vec4(p1.xyz,1.f)); 
+//                    p2 = (uModel* vec4(p2.xyz,1.f)); 
+
 
                     if ( intersect_triangle( r,  p0.xyz,p1.xyz,p2.xyz ,nfoT ) ) 
                     {
