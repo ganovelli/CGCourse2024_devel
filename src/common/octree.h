@@ -18,7 +18,7 @@ struct octree {
 	// nodes[i][0] = 0 -> empty leaf
 	// nodes[i][0] = 1 -> internal node
 	// nodes[i][0] >= 2 -> non-empty leaf, index +2 to the first triangle
-	// nodes[i][1]    -> number of primitives
+	// nodes[i][1] -> number of primitives
 	std::vector<rgbai > nodes;
 	std::vector<rgbai > triangles_id;
 

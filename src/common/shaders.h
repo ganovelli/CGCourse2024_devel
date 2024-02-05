@@ -11,7 +11,7 @@
 #include "../common/debugging.h"
 
 struct shader{
-        GLuint   vs, gs, fs, pr;
+        GLuint   vs, gs, cs, fs, pr;
 
         std::map<std::string,int> uni;
 
@@ -35,10 +35,11 @@ struct shader{
 		}
 
 		bool create_shader(const GLchar* src, unsigned int SHADER_TYPE) {
-			GLuint s;
+			GLuint s = 0;
 			switch (SHADER_TYPE) {
-			case GL_VERTEX_SHADER:   s = vs = glCreateShader(GL_VERTEX_SHADER);break;
-			case GL_FRAGMENT_SHADER: s = fs = glCreateShader(GL_FRAGMENT_SHADER);break;
+				case GL_VERTEX_SHADER:   s = vs = glCreateShader(GL_VERTEX_SHADER);break;
+				case GL_FRAGMENT_SHADER: s = fs = glCreateShader(GL_FRAGMENT_SHADER);break;
+				case GL_COMPUTE_SHADER:  s = cs = glCreateShader(GL_COMPUTE_SHADER);break;
 			}  
 
 			glShaderSource(s, 1, &src, NULL);
@@ -80,7 +81,19 @@ struct shader{
 			}
 		}
 
-        void  create_program( const GLchar *nameV, const char *nameF){
+		void  create_program(const GLchar* nameC) {
+			std::string cs_src_code = textFileRead(nameC);
+			create_shader(cs_src_code.c_str(), GL_COMPUTE_SHADER);
+			pr = glCreateProgram();
+			glAttachShader(pr, cs);
+			 
+			glLinkProgram(pr);
+
+			bind_uniform_variables(cs_src_code);
+			check_shader(cs);
+			validate_shader_program(pr);
+		}
+		void  create_program( const GLchar *nameV, const char *nameF){
 		
 			std::string vs_src_code  = textFileRead(nameV);
 			std::string  fs_src_code = textFileRead(nameF);

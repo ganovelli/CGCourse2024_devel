@@ -53,16 +53,13 @@ renderable  r_plane;
 /* program shaders used */
 shader tex_shader;
 
+/* 3D model */
 gltf_model model;
 
+matrix_stack stack;
+float scaling_factor = 1.0;
 
-void draw_line(glm::vec4 l) {
-	glColor3f(1, 1, 1);
-	glBegin(GL_LINES);
-	glVertex3f(0.0, 0.0, 0.0);
-	glVertex3f(100 * l.x, 100 * l.y, 100 * l.z);
-	glEnd();
-}
+
 /* callback function called when the mouse is moving */
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
@@ -115,62 +112,12 @@ void create_image() {
 	glBindImageTexture(0, texture, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
 	check_gl_errors(__LINE__, __FILE__);
-	
-	glGenTextures(1, &inputmeshPos);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, inputmeshPos);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	 
-	float triangle[16] = { 0.0,0.0,-3.0,0, 1.0,0.0,-3.0,0, 0.0,0.5,-3.0 ,0,
-						1.0,0.5,-3.0,0};
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 16, 1, 0, GL_RGBA,GL_FLOAT, triangle);
-	 
-	glBindImageTexture(1, inputmeshPos, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
-	 
-
-	glGenTextures(1, &inputmeshId);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, inputmeshId);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	int triangleId[8] = { 0,1,2,0,1,2,3,0 };
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32I, 2, 1, 0, GL_RGBA_INTEGER, GL_INT, triangleId);
-	check_gl_errors(__LINE__, __FILE__);
-	glBindImageTexture(3, inputmeshId, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32I);
-	check_gl_errors(__LINE__, __FILE__);
 }
 
 std::string shaders_path = "../../src/code_XX_compute_shader/shaders/";
-
-unsigned int compute;
-GLint ID;
-int iTime_loc, uWidth_loc, uNTriangles_loc, uBbox_loc;
-void init_compute_shader() {
-
-	std::string source = shader::textFileRead((shaders_path + "raytracing_octree.comp").c_str());
-	// compute shader
-	const GLchar* d = source.c_str();
-	compute = glCreateShader(GL_COMPUTE_SHADER);
-	glShaderSource(compute, 1, &d, NULL);
-	glCompileShader(compute);
-	check_shader(compute);
-
-	// shader Program
-	ID = glCreateProgram();
-	glAttachShader(ID, compute);
-	glLinkProgram(ID);
-	validate_shader_program(ID);
-	iTime_loc = glGetUniformLocation(ID, "iTime");
-	uWidth_loc = glGetUniformLocation(ID, "uWidth");
-	uNTriangles_loc = glGetUniformLocation(ID, "uNTriangles");
-	uBbox_loc = glGetUniformLocation(ID, "uBbox");
-}
+shader rt_shader;
+ 
+int iTime_loc, uWidth_loc,  uBbox_loc;
 
 
 int main(int argc, char ** argv)
@@ -210,26 +157,26 @@ int main(int argc, char ** argv)
 
 
 	check_gl_errors(__LINE__, __FILE__);
-	init_compute_shader();
+	rt_shader.create_program((shaders_path + "raytracing_octree.comp").c_str());
 	check_gl_errors(__LINE__, __FILE__);
 
 	create_image();
 	
 	model.load(argv[1]);
 	model.create_buffers();
-
-	glUseProgram(ID);
-	glUniform1i(iTime_loc, 0 * clock());
-	glUniform1i(uWidth_loc, 2048);
-	glUniform1i(uNTriangles_loc, std::max(model.n_tri, 2) );
-
+	check_gl_errors(__LINE__, __FILE__);
+	glUseProgram(rt_shader.pr);
+	glUniform1i(rt_shader["iTime"], 0 * clock());
+	glUniform1i(rt_shader["uWidth"], 2048);
+	glUniform1i(rt_shader["uNTriangles"], std::max(model.n_tri, 2) );
+	check_gl_errors(__LINE__, __FILE__);
 	float box4[4];
 	box4[0] = model.o.bbox.getMin().x;
 	box4[1] = model.o.bbox.getMin().y;
 	box4[2] = model.o.bbox.getMin().z;
 	box4[3] = model.o.bbox.getLongestEdge();
 
-	glUniform4fv(uBbox_loc, 1, box4);
+	glUniform4fv(rt_shader["uBbox"], 1, box4);
 	
 	glDispatchCompute((unsigned int)TEXTURE_WIDTH, (unsigned int)TEXTURE_HEIGHT, 1);
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -252,9 +199,6 @@ int main(int argc, char ** argv)
 	shape_maker::rectangle(s_plane, 10, 10);
 	s_plane.to_renderable(r_plane);
 
-
-
-
 	print_info();
 	/* define the viewport  */
 	glViewport(0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT);
@@ -262,6 +206,17 @@ int main(int argc, char ** argv)
 	/* avoid rendering back faces */
 	// uncomment to see the plane disappear when rotating it
 	glDisable(GL_CULL_FACE);
+
+	tb[0].reset();
+	tb[0].set_center_radius(glm::vec3(0, 0, -4), 1.f);
+	curr_tb = 0;
+
+	proj = glm::frustum(-1.f, 1.f, -0.8f, 0.8f, 2.f, 100.f);
+	view = glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 1.f, 0.f));
+	//view_frame = glm::inverse(view);
+
+	//stack.mult(proj);
+	
 
 	int _ = true;
 	/* Loop until the user closes the window */
@@ -272,12 +227,27 @@ int main(int argc, char ** argv)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		check_gl_errors(__LINE__, __FILE__);
+
+
+		glUseProgram(rt_shader.pr);
+		glUniformMatrix4fv(rt_shader["uView"], 1, GL_FALSE, &view[0][0]);
+
+		 
+		glUniformMatrix4fv(rt_shader["uTrackball"], 1, GL_FALSE, &tb[0].matrix()[0][0]);
+		stack.push();
+		stack.mult(glm::translate(glm::mat4(1.0), glm::vec3(0, 0, -4)));
+		stack.mult(glm::scale(glm::mat4(1.0), glm::vec3(0.125, 0.125, 0.125)));
+		glUniformMatrix4fv(rt_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
+		stack.pop();
+
 		if (_) {
 			// _ = false;
-			glUseProgram(ID);
+			glUseProgram(rt_shader.pr);
 			glUniform1i(iTime_loc, clock());
 			glDispatchCompute((unsigned int)TEXTURE_WIDTH, (unsigned int)TEXTURE_HEIGHT, 1);
 		}
+		
+
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
 
@@ -288,6 +258,7 @@ int main(int argc, char ** argv)
 		glDrawElements(GL_TRIANGLES, r_plane.inds[0].count, GL_UNSIGNED_INT, 0);
 		glUseProgram(0);
 
+		
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
 
