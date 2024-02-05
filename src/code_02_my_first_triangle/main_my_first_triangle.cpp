@@ -64,7 +64,6 @@ int main(void)
 	/* specify the data format */
 	glVertexAttribPointer(colorAttribIndex, 3, GL_FLOAT, false, 0, 0);
 
-/*  \BEGIN IGNORATE DA QUI IN POI */
 	/* create a vertex shader */
 	std::string  vertex_shader_src = "#version 460 core\n \
         in vec2 aPosition;\
@@ -102,8 +101,8 @@ int main(void)
 	glBindAttribLocation(program_shader, positionAttribIndex, "aPosition");
 	glBindAttribLocation(program_shader, colorAttribIndex, "aColor");
 	glLinkProgram(program_shader);
-/*  \END IGNORATE  */
 
+	glUseProgram(program_shader);
 
 	/* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -111,11 +110,7 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-		glUseProgram(program_shader);
-
 		glDrawArrays(GL_TRIANGLES, 0, 3);
-
-		glUseProgram(0);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
