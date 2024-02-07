@@ -213,7 +213,7 @@ static void load_obj(std::vector<renderable> & rs, std::string inputfile) {
         std::vector<unsigned int> inds;
          for (size_t f = 0; f < mshapes[is].mesh.indices.size(); f++) 
              inds.push_back(static_cast<unsigned int>(mshapes[is].mesh.indices[f].vertex_index));
-        rs[is].add_element_array(&inds[0], (int) mshapes[is].mesh.indices.size(), GL_TRIANGLES);
+        rs[is].add_indices<unsigned int> (&inds[0], (int) mshapes[is].mesh.indices.size(), GL_TRIANGLES);
     }
 
 	if(!materials.empty())

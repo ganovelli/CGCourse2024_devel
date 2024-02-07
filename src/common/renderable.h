@@ -74,8 +74,8 @@ struct material {
 struct renderable {
 
 	struct element_array {
-		GLuint ind, elem_type, count;
-		element_array() { }
+		element_array():ind(0), mode(0), count(0), itype(GL_UNSIGNED_INT){}
+		GLuint ind, mode, count, itype;
 	};
 
 	// vertex array object
@@ -84,16 +84,11 @@ struct renderable {
 	// vertex buffer objects
 	std::vector<GLuint> vbos;
 
-	// element array
-	GLuint ind;
-
-	// vector of element array
-	std::vector<element_array > inds;
-
-	// element arrays (backward compatible implementation)
+	// vector of element array (indices)
+	std::vector<element_array > elements;
 
 	// primitive type
-	unsigned int elem_type;
+	unsigned int mode;
 
 	// number of vertices
 	unsigned int vn;
@@ -176,28 +171,41 @@ struct renderable {
 		unsigned int offset = 0) { }
 
 
-	GLuint add_indices(unsigned int* indices, unsigned int count, unsigned int ELEM_TYPE) {
-		std::cout << "deprecated (but working) : use add_element_array" << std::endl;
-		add_element_array(indices, count, ELEM_TYPE);
-		in = count;
-		elem_type = ELEM_TYPE;
-		ind = inds.back().ind;
-		return ind;
-	};
+	template <class C>
+	int type_to_GL() {};
 
-	GLuint add_element_array(void* indices, unsigned int count, unsigned int ELEM_TYPE) {
-		inds.push_back(element_array());
+	template <class IND_TYPE>
+	GLuint add_indices(void* indices, unsigned int count, unsigned int mode) {
+		elements.push_back(element_array());
 		glBindVertexArray(vao);
-		glGenBuffers(1, &inds.back().ind);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, inds.back().ind);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * count, indices, GL_STATIC_DRAW);
+		glGenBuffers(1, &elements.back().ind);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elements.back().ind);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(IND_TYPE) * count, indices, GL_STATIC_DRAW);
 		glBindVertexArray(NULL);
-		inds.back().elem_type = ELEM_TYPE;
-		inds.back().count = count;
-		return inds.back().ind;
+		elements.back().mode = mode;
+		elements.back().count = count;
+		elements.back().itype = type_to_GL<IND_TYPE>();
+
+		return elements.back().ind;
 	};
 
+	/* this function return the first set of indices (if present), that is: elements[0]. 
+	*  Often we have just a set of indices so it comes handy. Otherwise access elements[id]
+	*  with the set of indices you need
+	*/
+	element_array operator()() {
+		if (!elements.empty()) return elements[0]; else return element_array();}
 };
+
+template <>
+int renderable::type_to_GL<unsigned int>() { return GL_UNSIGNED_INT; }
+
+template <>
+int renderable::type_to_GL<unsigned short>() { return GL_UNSIGNED_SHORT; }
+
+template <>
+int renderable::type_to_GL<unsigned char>() { return GL_UNSIGNED_BYTE; }
+
 
 template <>
 GLuint renderable::add_vertex_attribute(const float* values, unsigned int count,
