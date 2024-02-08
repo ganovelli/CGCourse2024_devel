@@ -17,9 +17,11 @@ uniform int uWidth;
 uniform int uNTriangles;
 uniform vec4 uBbox;
 
+uniform mat4 uProj_1;
 uniform mat4 uView;
 uniform mat4 uModel;
 uniform mat4 uTrackball;
+uniform ivec2 uResolution;
 
 #define MAX_BOUNCES 1
 #define LAMBERTIAN 0
@@ -29,7 +31,7 @@ uniform mat4 uTrackball;
 
 vec3 background_color;
 
-ivec2 iResolution;
+ 
 vec4 p0,p1,p2;
 
 ivec2 id2tc(int id){
@@ -266,9 +268,13 @@ Ray primaryRay( in vec2 winpos ) {
     
     Ray r;
     r.pos = vec3( 0.0 ); // viewpos (eye) in origin!
-    r.dir.x = (winpos.x - iResolution.x / 2.0) / (iResolution.x / 2.0);
-    r.dir.y = (winpos.y - iResolution.y / 2.0) / (iResolution.x / 2.0);
-    r.dir.z = -near;
+    r.dir.x = (winpos.x - uResolution.x / 2.0) / (uResolution.x / 2.0);
+    r.dir.y = (winpos.y - uResolution.y / 2.0) / (uResolution.x / 2.0);
+    r.dir.z = -1.0;
+
+    vec4 rdir =   uProj_1 * vec4(r.dir,1.0)  ;
+    r.dir = (rdir/rdir.w).xyz;
+
     r.dir = normalize( r.dir );
     return r;
 }
@@ -384,10 +390,14 @@ bool hit_scene(in Ray r,in  float m, in float M, inout hit_info nfo){
  n_leaves = 0;
  n_ite = 0;
 
-// hit = intersect_cube(r,vec3(0,0,-4), 0.5);
-
-
-// if(false)
+// hit = intersect_cube(r,vec3(0,0,-1), 4);
+// for (int h = 0; h < 100; ++h)
+//    //hit = intersect_cube(r,vec3(0,0,-1+h/float(100.f)), 4);
+//    hit = intersect_triangle( r,  vec3(0,0,0),vec3(1,0,0),vec3(0,1,1) ,nfoT );
+//
+// return (nfo.t < M);
+//
+ 
  do{
     n_ite ++;
     if(cn.going_up || !intersect_cube(r,cn.pos ,cn.size)){
@@ -405,6 +415,8 @@ bool hit_scene(in Ray r,in  float m, in float M, inout hit_info nfo){
           }
          else // then it's a non empty leaf
             if(node.x > 1 ){
+//                 hit = true;
+//                 if(false)
                  for(int it = node.x-2; it < node.x-2+node.y ;++it){
                     ivec2 tc  = id2tc(it); 
                     ivec3 ids = imageLoad(imgInputId,tc).xyz;
@@ -412,12 +424,6 @@ bool hit_scene(in Ray r,in  float m, in float M, inout hit_info nfo){
                     p1 = imageLoad(imgInputPos,id2tc(ids.y));
                     p2 = imageLoad(imgInputPos,id2tc(ids.z));
    
-  
-//                    p0 = (uModel* vec4(p0.xyz,1.f)); 
-//                    p1 = (uModel* vec4(p1.xyz,1.f)); 
-//                    p2 = (uModel* vec4(p2.xyz,1.f)); 
-
-
                     if ( intersect_triangle( r,  p0.xyz,p1.xyz,p2.xyz ,nfoT ) ) 
                     {
                         hit = true;
@@ -472,52 +478,59 @@ vec3 direct_lighting(in hit_info nfo){
 vec3 dir_in_hemispere(in hit_info nfo){
    return normalize(nfo.normal + random_in_unit_sphere(g_seed));
 }
-
+//
+//vec3 color(in Ray r){
+//    vec3 col = vec3(1);  
+//    vec3 dcol = vec3(0);
+//	hit_info nfo;
+//    
+//    for (int i=0; i<MAX_BOUNCES; i++) {
+//    
+//     if (hit_scene(r, 0.001, 100.0, nfo)){
+//            
+//         if( (i== MAX_BOUNCES-1 )  ) 
+//            col *= vec3(0.0);
+//          else 
+//         if(nfo.mat.type == LAMBERTIAN){
+//               col *=  nfo.mat.albedo;
+//               dcol += col*direct_area_lighting(nfo);
+//               dcol += col*direct_lighting(nfo);
+//              }
+//         else
+//          if( (i==0) &&  nfo.mat.type == EMISSIVE )
+//             {
+//                   col  *= nfo.mat.albedo;
+//                  i = MAX_BOUNCES;
+//             }
+//               
+//         r.pos = nfo.point;
+//         r.dir = dir_in_hemispere(nfo);
+//        
+//        }
+//         else
+//        {
+//           //float t = .5*r.dir.y + .5;
+//          // col *= mix(vec3(1),vec3(.5,.7,1), t);
+//           col=vec3(0);
+//        }
+//         
+//      }
+//    return col+dcol;
+//}
+//
 vec3 color(in Ray r){
     vec3 col = vec3(1);  
     vec3 dcol = vec3(0);
 	hit_info nfo;
-    
-    for (int i=0; i<MAX_BOUNCES; i++) {
-    
-     if (hit_scene(r, 0.001, 100.0, nfo)){
-            
-         if( (i== MAX_BOUNCES-1 )  ) 
-            col *= vec3(0.0);
-          else 
-         if(nfo.mat.type == LAMBERTIAN){
-               col *=  nfo.mat.albedo;
-               dcol += col*direct_area_lighting(nfo);
-               dcol += col*direct_lighting(nfo);
-              }
-         else
-          if( (i==0) &&  nfo.mat.type == EMISSIVE )
-             {
-                   col  *= nfo.mat.albedo;
-                  i = MAX_BOUNCES;
-             }
-               
-         r.pos = nfo.point;
-         r.dir = dir_in_hemispere(nfo);
-        
-        }
-         else
-        {
-           //float t = .5*r.dir.y + .5;
-          // col *= mix(vec3(1),vec3(.5,.7,1), t);
-           col=vec3(0);
-        }
-         
-      }
-    return col+dcol;
+    if(hit_scene(r, 0.001, 100.0, nfo))
+        return vec3(1,0,0);
 }
-
 
 shared vec3 avg_col;
 
 void main()
 {
-	iResolution.xy = ivec2(1024,1024);
+ 
 	vec2 fragCoord;
     ivec2 texelCoord = ivec2(gl_GlobalInvocationID.x/lsx,gl_GlobalInvocationID.y/lsy);
 	

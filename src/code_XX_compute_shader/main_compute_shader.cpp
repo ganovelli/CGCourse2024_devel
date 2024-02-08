@@ -96,7 +96,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void print_info() {
 }
 unsigned int texture, inputmeshPos,inputmeshId;
-const unsigned int TEXTURE_WIDTH = 1024, TEXTURE_HEIGHT = 1024;
+const unsigned int TEXTURE_WIDTH = 128, TEXTURE_HEIGHT = 128;
 void create_image() {
 	// texture size
 
@@ -177,7 +177,6 @@ int main(int argc, char ** argv)
 	box4[3] = model.o.bbox.getLongestEdge();
 
 	glUniform4fv(rt_shader["uBbox"], 1, box4);
-	
 	glDispatchCompute((unsigned int)TEXTURE_WIDTH, (unsigned int)TEXTURE_HEIGHT, 1);
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 	 
@@ -211,17 +210,26 @@ int main(int argc, char ** argv)
 	tb[0].set_center_radius(glm::vec3(0, 0, -4), 1.f);
 	curr_tb = 0;
 
-	proj = glm::frustum(-1.f, 1.f, -0.8f, 0.8f, 2.f, 100.f);
+	proj = glm::frustum(-1.f, 1.f, -1.f, 1.f, 2.f, 100.f);
 	view = glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 1.f, 0.f));
-	//view_frame = glm::inverse(view);
+	glm::mat4 proj_1 = glm::inverse(proj);
 
-	//stack.mult(proj);
-	
-
+	glUseProgram(rt_shader.pr);
+	glUniformMatrix4fv(rt_shader["uProj_1"], 1, GL_FALSE, &proj_1[0][0]);
+	glUniform2i(rt_shader["uResolution"], TEXTURE_WIDTH, TEXTURE_HEIGHT);
 	int _ = true;
+
+	int nf = 0;
+	int cstart = clock();
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
+		if (clock() - cstart > 1000) {
+			std::cout << nf << std::endl;
+			nf = 0;
+			cstart = clock();
+		}
+		nf++;
 		/* Render here */
 		glClearColor(0.0, 0.0, 0.0, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);

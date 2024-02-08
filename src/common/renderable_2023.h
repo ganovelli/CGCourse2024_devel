@@ -1,6 +1,75 @@
 #pragma once
 #include <GL/glew.h>
 #include <vector>
+#include <glm/glm.hpp>  
+#include "texture.h"
+
+struct box3
+{
+	/// min coordinate point
+	glm::vec3 min;
+
+	/// max coordinate point
+	glm::vec3 max;
+
+	/// The bounding box constructor (make it of size s centered in 0^3
+	inline  box3(float s) { min =  glm::vec3(-s/2.f); max = glm::vec3(s / 2.f); }
+
+	/// The bounding box constructor (make it empty)
+	inline  box3() { min = glm::vec3(1.f); max = glm::vec3(-1.f); }
+
+	/// Min Max constructor
+	inline  box3(const glm::vec3& mi, const glm::vec3& ma) { min = mi; max = ma; }
+
+	/// The bounding box distructor
+	inline ~box3() { }
+
+	/** Modify the current bbox to contain also the passed point
+	*/
+	void add(const glm::vec3& p)
+	{
+		if (min.x > max.x) { min = max = p; }
+		else
+		{
+			if (min.x > p.x) min.x = p.x;
+			if (min.y > p.y) min.y = p.y;
+			if (min.z > p.z) min.z = p.z;
+
+			if (max.x < p.x) max.x = p.x;
+			if (max.y < p.y) max.y = p.y;
+			if (max.z < p.z) max.z = p.z;
+		}
+	}
+
+	bool is_empty() const { return min == max; }
+
+	float diagonal() const
+	{
+		return glm::length(min - max);
+	}
+
+	glm::vec3 center() const
+	{
+		return (min + max) * 0.5f;
+	}
+
+};
+
+
+struct material {
+	std::string name;
+
+	float  ambient[3];
+	float  diffuse[3];
+	float  specular[3];
+	float  transmittance[3];
+	float  emission[3];
+	float  shininess;
+	float  ior;       // index of refraction
+	float  dissolve;  // 1 == opaque; 0 == fully transparent
+
+	texture ambient_texture,diffuse_texture,specular_texture;
+};
 
 struct renderable {
 
