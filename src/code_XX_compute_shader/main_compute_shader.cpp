@@ -165,7 +165,7 @@ int main(int argc, char ** argv)
 	model.load(argv[1]);
 	model.create_buffers();
 	check_gl_errors(__LINE__, __FILE__);
-	glUseProgram(rt_shader.pr);
+	glUseProgram(rt_shader.program);
 	glUniform1i(rt_shader["iTime"], 0 * clock());
 	glUniform1i(rt_shader["uWidth"], 2048);
 	glUniform1i(rt_shader["uNTriangles"], std::max(model.n_tri, 2) );
@@ -188,9 +188,9 @@ int main(int argc, char ** argv)
 	tex_shader.create_program((shaders_path + "tex.vert").c_str(), (shaders_path + "tex.frag").c_str());
 	tex_shader.bind("tex");
 	tex_shader.bind("uT");
-	check_shader(tex_shader.vs);
-	check_shader(tex_shader.fs);
-	validate_shader_program(tex_shader.pr);
+	check_shader(tex_shader.vertex_shader);
+	check_shader(tex_shader.fragment_shader);
+	validate_shader_program(tex_shader.program);
 	check_gl_errors(__LINE__, __FILE__);
 
 	/* crete a rectangle*/
@@ -214,7 +214,7 @@ int main(int argc, char ** argv)
 	view = glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 1.f, 0.f));
 	glm::mat4 proj_1 = glm::inverse(proj);
 
-	glUseProgram(rt_shader.pr);
+	glUseProgram(rt_shader.program);
 	glUniformMatrix4fv(rt_shader["uProj_1"], 1, GL_FALSE, &proj_1[0][0]);
 	glUniform2i(rt_shader["uResolution"], TEXTURE_WIDTH, TEXTURE_HEIGHT);
 	int _ = true;
@@ -237,7 +237,7 @@ int main(int argc, char ** argv)
 		check_gl_errors(__LINE__, __FILE__);
 
 
-		glUseProgram(rt_shader.pr);
+		glUseProgram(rt_shader.program);
 		glUniformMatrix4fv(rt_shader["uView"], 1, GL_FALSE, &view[0][0]);
 
 		 
@@ -250,7 +250,7 @@ int main(int argc, char ** argv)
 
 		if (_) {
 			// _ = false;
-			glUseProgram(rt_shader.pr);
+			glUseProgram(rt_shader.program);
 			glUniform1i(iTime_loc, clock());
 			glDispatchCompute((unsigned int)TEXTURE_WIDTH, (unsigned int)TEXTURE_HEIGHT, 1);
 		}
@@ -259,11 +259,11 @@ int main(int argc, char ** argv)
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
 
-		glUseProgram(tex_shader.pr);
+		glUseProgram(tex_shader.program);
 		glUniform1i(tex_shader["tex"], 0);
 		glUniformMatrix4fv(tex_shader["uT"], 1, GL_FALSE, &glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))[0][0]);
 		r_plane.bind();
-		glDrawElements(GL_TRIANGLES, r_plane.inds[0].count, GL_UNSIGNED_INT, 0);
+		glDrawElements(r_plane().mode, r_plane().count, r_plane().itype, 0);
 		glUseProgram(0);
 
 		
