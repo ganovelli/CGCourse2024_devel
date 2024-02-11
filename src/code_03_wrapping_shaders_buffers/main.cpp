@@ -53,14 +53,14 @@ int main(void)
 
 
     GLuint indices[] = { 0,1,2,0,2,3 };
-    r.add_indices(indices, 3, GL_TRIANGLES);
+    r.add_indices<GLuint>(indices, 3, GL_TRIANGLES);
 
 	shader basic_shader;
     basic_shader.create_program("shaders/basic.vert", "shaders/basic.frag");
 	basic_shader.bind("uDelta");
-	check_shader(basic_shader.vs);
-	check_shader(basic_shader.fs);
-    validate_shader_program(basic_shader.pr);
+	check_shader(basic_shader.vertex_shader);
+	check_shader(basic_shader.fragment_shader);
+    validate_shader_program(basic_shader.program);
 
 	check_gl_errors(__LINE__, __FILE__);
 
@@ -73,7 +73,7 @@ int main(void)
 		it++;
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
-        glUseProgram(basic_shader.pr);
+        glUseProgram(basic_shader.program);
 
        /* update the value of uDelta in the fragment shader */
 		glUniform1f(basic_shader["uDelta"], (it % 100) / 200.0);
