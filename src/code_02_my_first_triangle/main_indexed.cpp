@@ -77,14 +77,15 @@ int main(void)
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * 6, indices, GL_STATIC_DRAW);
 
     /* create a vertex shader */
-    std::string  vertex_shader_src = "#version 330\n \
-        in vec2 aPosition;\
-        in vec3 aColor;\
+	std::string  vertex_shader_src = "#version 460\n \
+        layout (location=0) in vec2 aPosition;\
+        layout (location=1)  in vec3 aColor;\
         out vec3 vColor;\
+		uniform vec2 uDelta;\
         void main(void)\
         {\
          gl_Position = vec4(aPosition, 0.0, 1.0);\
-         vColor = aColor;\
+         vColor = aColor+vec3(uDelta,0.0);\
         }\
        ";
     const GLchar* vs_source = (const GLchar*)vertex_shader_src.c_str();
@@ -94,7 +95,7 @@ int main(void)
     check_shader(vertex_shader);
 
     /* create a fragment shader */
-    std::string   fragment_shader_src = "#version 330 \n \
+    std::string   fragment_shader_src = "#version 460 \n \
         out vec4 color;\
         in vec3 vColor;\
         void main(void)\
@@ -118,16 +119,27 @@ int main(void)
 
 	/* use the program shader "program_shader" */
 	glUseProgram(program_shader);
+	GLint uDelta_loc = glGetUniformLocation(program_shader, "uDelta");
 
+	float d = 0.001;
+	float delta = 0.f;
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
+		if (delta < 0 || delta >1)
+			d *= -1;
+		delta += d;
+
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
         //glDrawArrays(GL_TRIANGLES, 0, 3);
+		glUniform2f(uDelta_loc, delta, 0.f);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
-        check_gl_errors(__LINE__,__FILE__);
+
+		glUniform2f(uDelta_loc, -delta, 0.f);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+		check_gl_errors(__LINE__,__FILE__);
  
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

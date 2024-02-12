@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="shader">
+      <UniqueIdentifier>{72781ab4-3ddc-4d4b-8d36-c76a627118f5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\code_04_transformations_pipeline\shaders\basic.frag">
+      <Filter>shader</Filter>
+    </None>
+    <None Include="..\..\src\code_04_transformations_pipeline\shaders\basic.vert">
+      <Filter>shader</Filter>
+    </None>
+  </ItemGroup>
+</Project>
