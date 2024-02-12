@@ -78,8 +78,8 @@ int main(void)
 
     /* create a vertex shader */
 	std::string  vertex_shader_src = "#version 460\n \
-        layout (location=0) in vec2 aPosition;\
-        layout (location=1)  in vec3 aColor;\
+        in vec2 aPosition;\
+        in vec3 aColor;\
         out vec3 vColor;\
 		uniform vec2 uDelta;\
         void main(void)\
@@ -133,7 +133,6 @@ int main(void)
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        //glDrawArrays(GL_TRIANGLES, 0, 3);
 		glUniform2f(uDelta_loc, delta, 0.f);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 
