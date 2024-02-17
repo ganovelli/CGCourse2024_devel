@@ -1,10 +1,10 @@
 #pragma once
 #include <tinygltf/tiny_gltf.h>
-#include "renderable.h"
 #include "texture.h"
 #include "debugging.h"
+#include "octree.h"
 
-struct gltf_loader {
+struct gltf_model {
 
 	tinygltf::Model model;
 	tinygltf::TinyGLTF loader;
@@ -14,7 +14,7 @@ struct gltf_loader {
 
     std::vector<texture> positions;
     int n_vert, n_tri;
- 
+    octree o;
 
     static std::string GetFilePathExtension(const std::string& FileName) {
         if (FileName.find_last_of(".") != std::string::npos)
@@ -55,9 +55,8 @@ struct gltf_loader {
         *(int*)&dst[1] = (int)*((type*)&src[1]);
         *(int*)&dst[2] = (int)*((type*)&src[2]);
     }
-
     // take a model and fill the buffers to be passed to the compute shader (for ray tracing)
-    bool create_renderable( renderable & r) {
+    bool create_buffers() {
 
         unsigned char* _data_vert[2] = { 0,0 };
         unsigned char * _data = 0;
@@ -70,20 +69,22 @@ struct gltf_loader {
         // just look for the first mesh 
         int scene_to_display = model.defaultScene > -1 ? model.defaultScene : 0;
         const tinygltf::Scene& scene = model.scenes[scene_to_display];
-        for (size_t i = 0; i < model.nodes.size(); i++) {
-            if(model.nodes[i].mesh > -1 )
-                mesh_ptr = &model.meshes[model.nodes[i].mesh];
+        for (size_t i = 0; i < scene.nodes.size(); i++) {
+            if(model.nodes[scene.nodes[i]].mesh > -1 )
+                mesh_ptr = &model.meshes[model.nodes[scene.nodes[i]].mesh];
         }
 
         if (mesh_ptr == 0)
             return false;
-		r.create();
 
         tinygltf::Mesh & mesh = *mesh_ptr;
         for (size_t i = 0; i < mesh.primitives.size(); i++) {
         const tinygltf::Primitive& primitive = mesh.primitives[i];
 
         if (primitive.indices < 0) return false;
+
+        // Assume TEXTURE_2D target for the texture object.
+        // glBindTexture(GL_TEXTURE_2D, gMeshState[mesh.name].diffuseTex[i]);
 
         std::map<std::string, int>::const_iterator it(primitive.attributes.begin());
         std::map<std::string, int>::const_iterator itEnd(primitive.attributes.end());
@@ -108,25 +109,59 @@ struct gltf_loader {
                 assert(0);
             }
             // it->first would be "POSITION", "NORMAL", "TEXCOORD_0", ...
-            int attr_index = -1;
-            if (it->first.compare("POSITION") == 0) attr_index = 0;
-            if (it->first.compare("COLOR") == 0)    attr_index = 1;
-            if (it->first.compare("NORMAL") == 0)   attr_index = 2;
+            if ((it->first.compare("POSITION") == 0) ||
+                (it->first.compare("NORMAL") == 0) ||
+                (it->first.compare("TEXCOORD_0") == 0)
+                ) {
+                 
+                if (it->first.compare("TEXCOORD_0") == 0) 
+                    continue;
 
-            if (attr_index!= -1) {
+                int tu = (it->first.compare("POSITION") == 0) ? 1 : 2; // 1 position, 2 normal
 
-				// Compute byteStride from Accessor + BufferView combination.
+
+                // Compute byteStride from Accessor + BufferView combination.
                 int byteStride =
                     accessor.ByteStride(model.bufferViews[accessor.bufferView]);
                 assert(byteStride != -1);
 
-                n_vert = accessor.count ;
-       
+                GLuint texPos;
+                glGenTextures(1, &texPos);
+                glBindTexture(GL_TEXTURE_2D, texPos);
+
+                // one long texture, just a stub implementation
                 int buffer = model.bufferViews[accessor.bufferView].buffer;
                 int bufferviewOffset = model.bufferViews[accessor.bufferView].byteOffset;
+               
+                
+                n_vert = accessor.count ;
+                
+                // size of the texture to contain the data
+                texture_height = n_vert / max_texture_width + 1;
 
-				r.add_vertex_attribute<float>((float*) & model.buffers[buffer].data[bufferviewOffset + accessor.byteOffset], 3 * n_vert, attr_index, 3);
-			}
+                // accessor.count how many normals/position
+                // 4 = 3 component + 1 padding because shader does not support rgb32f (without a)
+                // 4 byte for each float
+                unsigned char*  _data = new unsigned char[texture_height* max_texture_width*4*4];
+                _data_vert[tu - 1] = _data;
+                memset(_data, 0, texture_height * max_texture_width * 4 * 4);
+
+                for (int i = 0; i < n_vert;++i)
+                    memcpy_s(& _data[i*16],12, &model.buffers[buffer].data[bufferviewOffset+accessor.byteOffset + i*12 ],12);
+               
+
+               // accessor.count
+                //accessor.componentType, & model.buffers[buffer].data[0];
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, max_texture_width, texture_height,0, GL_RGBA, GL_FLOAT,  _data );
+               // delete[] _data;
+
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+                glBindImageTexture(tu, texPos, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+            }
         }
 
         const tinygltf::Accessor& indexAccessor =
@@ -165,16 +200,46 @@ struct gltf_loader {
         int bufferviewOffset = model.bufferViews[indexAccessor.bufferView].byteOffset;
 
         n_tri = indexAccessor.count / 3;
-         
-		check_gl_errors(__LINE__, __FILE__);
-        switch (indexAccessor.componentType) {
-            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:     r.add_indices<unsigned char>((unsigned char*)&model.buffers[buffer].data[bufferviewOffset + indexAccessor.byteOffset], indexAccessor.count, GL_TRIANGLES);break;
-            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:    r.add_indices<unsigned short>((unsigned short*)&model.buffers[buffer].data[bufferviewOffset + indexAccessor.byteOffset], indexAccessor.count, GL_TRIANGLES);break;
-            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:      r.add_indices<unsigned int>((unsigned int*)&model.buffers[buffer].data[bufferviewOffset + indexAccessor.byteOffset], indexAccessor.count, GL_TRIANGLES);break;
-        }
+
+        // size of the texture to contain the data. Every pixels store the indices for one trinagles in its rgb components
+        texture_height = n_tri / max_texture_width + 1;
         
+        // accessor.count how many indices
+        // 4 = 3 component + 1 padding because shader does not support rgb32i (without a)
+        // 4 byte for each integer
+        _data = new unsigned char[texture_height * max_texture_width * 4 * 4];
+        memset(_data, 0, texture_height* max_texture_width * 4 * 4);
+        int x, y, z;
+
+
+        for (int i = 0; i < n_tri;++i) {
+            switch (indexAccessor.componentType) {
+            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:copy_triplet<unsigned char>( & ((int*) _data)[i * 4], (unsigned char*)&model.buffers[buffer].data[bufferviewOffset + indexAccessor.byteOffset + i * 3]);break;
+            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: copy_triplet<unsigned short>(&((int*)_data)[i * 4], (unsigned short*)&model.buffers[buffer].data[bufferviewOffset  + indexAccessor.byteOffset + i * 3 * sizeof(unsigned short)]);    break;
+            case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT: copy_triplet<unsigned int>(&((int*)_data)[i * 4], (unsigned int*)&model.buffers[buffer].data[bufferviewOffset + indexAccessor.byteOffset + i * 3 * sizeof(unsigned int)]);    break;
+            }
+        }
         check_gl_errors(__LINE__, __FILE__);
     
+        
+        glGenTextures(1, &texId);
+        glBindTexture(GL_TEXTURE_2D, texId);    
+        
+        // accessor.count
+        //accessor.componentType, & model.buffers[buffer].data[0];
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32I, max_texture_width, texture_height, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, _data);
+        
+        check_gl_errors(__LINE__, __FILE__);
+
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+        glBindImageTexture(3, texId, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32UI);
+        check_gl_errors(__LINE__, __FILE__);
+
 
   /*      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
             gBufferState[indexAccessor.bufferView].vb);
@@ -221,8 +286,51 @@ struct gltf_loader {
                 }
             }
         }*/
-     }
-        return true;
+    }
+
+    bool use_octree = true;
+    if (use_octree) {
+       
+        o.set((int*)_data, n_tri, (float*)_data_vert[0], n_vert,20, 5);
+
+        GLuint  texIdOct;
+        glGenTextures(1, &texIdOct);
+        glBindTexture(GL_TEXTURE_2D, texIdOct);
+
+        texture_height = o.nodes.size() / max_texture_width + 1;
+
+        // pad to texture size
+        o.nodes.insert(o.nodes.end(), max_texture_width* texture_height - o.nodes.size(), octree::rgbai());
+        // accessor.count
+        //accessor.componentType, & model.buffers[buffer].data[0];
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32I, max_texture_width, texture_height, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, &o.nodes[0]);
+
+        check_gl_errors(__LINE__, __FILE__);
+
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+        glBindImageTexture(4, texIdOct, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32UI);
+        check_gl_errors(__LINE__, __FILE__);
+
+
+
+        glBindTexture(GL_TEXTURE_2D, texId);
+        texture_height = o.triangles_id.size() / max_texture_width + 1;
+        // pad to texture size
+        this->n_tri = o.triangles_id.size();
+        o.triangles_id.insert(o.triangles_id.end(), max_texture_width* texture_height - o.triangles_id.size(), octree::rgbai());
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32I, max_texture_width, texture_height, 0, GL_RGBA_INTEGER, GL_UNSIGNED_INT, &o.triangles_id[0]);
+        glBindImageTexture(3, texId, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32UI);
+        check_gl_errors(__LINE__, __FILE__);
+       
+    }
+
+    return true;
     }
 
 };
