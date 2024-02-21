@@ -1,0 +1,6 @@
+﻿  main_rot.cpp
+d:\devel\cgcourse\cgcourse2024_devel\src\common\simple_shapes.h(23): warning C4267: 'argument': conversion from 'size_t' to 'unsigned int', possible loss of data
+d:\devel\cgcourse\cgcourse2024_devel\src\code_06_rotation_interpolation\main_rot.cpp(60): warning C4305: 'argument': truncation from 'double' to 'float'
+d:\devel\cgcourse\cgcourse2024_devel\src\code_06_rotation_interpolation\main_rot.cpp(63): warning C4305: 'argument': truncation from 'double' to 'float'
+  code_06_rotation_interpolation.vcxproj -> D:\devel\CGCourse\CGCourse2024_devel\build\x64\Debug\code_06_rotation_interpolation.exe
+  code_06_rotation_interpolation.vcxproj -> D:\devel\CGCourse\CGCourse2024_devel\build\x64\Debug\code_06_rotation_interpolation.pdb (Full PDB)
