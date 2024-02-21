@@ -362,4 +362,85 @@ struct shape_maker {
 		 s.to_renderable(res);
 		 return res;
 	 }
+
+	 static std::vector<glm::vec3> generateIcosahedronVertices() {
+		 const float X = 0.525731112119133606;
+		 const float Z = 0.850650808352039932;
+		 std::vector<glm::vec3> vertices = {
+			 { -X, 0.0f, Z },{ X, 0.0f, Z },{ -X, 0.0f, -Z },{ X, 0.0f, -Z },
+			 { 0.0f, Z, X },{ 0.0f, Z, -X },{ 0.0f, -Z, X },{ 0.0f, -Z, -X },
+			 { Z, X, 0.0f },{ -Z, X, 0.0f },{ Z, -X, 0.0f },{ -Z, -X, 0.0f }
+		 };
+		 return vertices;
+	 }
+	 static std::vector<int> generateIcosahedronIndices() {
+		 std::vector<int> indices = {
+			 0, 4, 1, 0, 9, 4, 9, 5, 4, 4, 5, 8, 4, 8, 1, 8, 10, 1, 8, 3, 10,
+			 5, 3, 8, 5, 2, 3, 2, 7, 3, 7, 10, 3, 7, 6, 10, 7, 11, 6, 11, 0, 6,
+			 0, 1, 6, 6, 1, 10, 9, 0, 11, 9, 11, 2, 9, 2, 5, 7, 2, 11
+		 };
+		 return indices;
+	 }
+	 static void sphere(shape& s, int recursion) {
+
+		 auto vertices = generateIcosahedronVertices();
+		 auto indices = generateIcosahedronIndices();
+
+		 for (int i = 0; i < 1; ++i) {
+			 std::vector<glm::vec3> newVertices;
+			 std::vector<unsigned int> newIndices;
+
+			 for (size_t j = 0; j < indices.size(); j += 3) {
+				 int v1Idx = indices[j];
+				 int v2Idx = indices[j + 1];
+				 int v3Idx = indices[j + 2];
+
+				 glm::vec3 v1 = vertices[v1Idx];
+				 glm::vec3 v2 = vertices[v2Idx];
+				 glm::vec3 v3 = vertices[v3Idx];
+
+				 int v12Idx = vertices.size();
+				 int v23Idx = v12Idx + 1;
+				 int v31Idx = v12Idx + 2;
+
+				 glm::vec3 v12((v1.x + v2.x) / 2, (v1.y + v2.y) / 2, (v1.z + v2.z) / 2);
+				 glm::vec3 v23((v2.x + v3.x) / 2, (v2.y + v3.y) / 2, (v2.z + v3.z) / 2);
+				 glm::vec3 v31((v3.x + v1.x) / 2, (v3.y + v1.y) / 2, (v3.z + v1.z) / 2);
+
+				 s.positions.push_back(v12.x);
+				 s.positions.push_back(v12.y);
+				 s.positions.push_back(v12.z);
+
+				 s.positions.push_back(v23.x);
+				 s.positions.push_back(v23.y);
+				 s.positions.push_back(v23.z);
+
+				 
+				 s.positions.push_back(v31.x);
+				 s.positions.push_back(v31.y);
+				 s.positions.push_back(v31.z);
+				 
+
+				 newIndices.push_back(v1Idx); newIndices.push_back(v12Idx); newIndices.push_back(v31Idx);
+				 newIndices.push_back(v2Idx); newIndices.push_back(v23Idx); newIndices.push_back(v12Idx);
+				 newIndices.push_back(v3Idx); newIndices.push_back(v31Idx); newIndices.push_back(v23Idx);
+				 newIndices.push_back(v12Idx); newIndices.push_back(v23Idx); newIndices.push_back(v31Idx);
+			 }
+
+			 s.indices_triangles = newIndices;
+		 }
+
+
+		 s.vn = (unsigned  int)s.positions.size() / 3;
+		 s.fn = (unsigned  int)s.indices_triangles.size() / 3;
+	 }
+
+	 static renderable sphere(int rec) {
+		 renderable res;
+		 shape s;
+		 sphere(s,rec);
+		 s.to_renderable(res);
+		 return res;
+	 }
+
 	};
