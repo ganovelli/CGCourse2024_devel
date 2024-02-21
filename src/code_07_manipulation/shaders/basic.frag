@@ -12,7 +12,6 @@ void main(void)
    vec3 L1 = normalize(vec3(-2,1,10)-vPos);
    float contrib = (max(0.f,dot(N,L0))+max(0.f,dot(N,L1)))*0.5;
 
-
    color = vec4(uColor*contrib, 1.0); 
 
 } 
