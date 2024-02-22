@@ -4,6 +4,7 @@ in vec3 vColor;
 in vec3 vPos;
 in vec3 vNorm;
 
+
 uniform vec3 uColor;
 
 void main(void) 
@@ -16,5 +17,4 @@ void main(void)
    float contrib = (max(0.f,dot(vNorm,L0))+max(0.f,dot(vNorm,L1)))*0.5;
 
    color = vec4(uColor*contrib, 1.0); 
-
 } 

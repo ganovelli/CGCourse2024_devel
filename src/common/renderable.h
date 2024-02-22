@@ -31,8 +31,12 @@ struct renderable {
 	// bounding box
 	box3 bbox;
 
+	// transformation matrix
+	glm::mat4 transform;
+
 	void create() {
 		glGenVertexArrays(1, &vao);
+		transform = glm::mat4(1.f);
 	}
 
 	void bind() {
