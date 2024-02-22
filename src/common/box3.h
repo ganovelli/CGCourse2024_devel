@@ -48,7 +48,7 @@ struct box3
 		add(glm::vec3(b.max));
 	}
 
-	bool is_empty() const { return min == max; }
+	bool is_empty() const { return min.x > max.x ; }
 
 	float diagonal() const
 	{
@@ -58,6 +58,10 @@ struct box3
 	glm::vec3 center() const
 	{
 		return (min + max) * 0.5f;
+	}
+
+	glm::vec3 p(unsigned int i) {
+		return glm::vec3((i % 2 == 0) ? min.x : max.x, ((i / 2) % 2 == 0) ? min.y : max.y, ((i / 4) == 0) ? min.z : max.z);
 	}
 
 };
