@@ -1,6 +1,7 @@
 #pragma once
 #include <GL/glew.h>
 #include <vector>
+#include "box3.h"
 
 struct renderable {
 
@@ -26,6 +27,9 @@ struct renderable {
 
 	// number of indices
 	unsigned int in;
+
+	// bounding box
+	box3 bbox;
 
 	void create() {
 		glGenVertexArrays(1, &vao);

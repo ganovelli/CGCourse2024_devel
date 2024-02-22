@@ -57,7 +57,7 @@ struct gltf_loader {
     }
 
     // take a model and fill the buffers to be passed to the compute shader (for ray tracing)
-    bool create_renderable( renderable & r) {
+    bool create_renderable( std::vector<renderable> & rs, box3 & bbox) {
 
         unsigned char* _data_vert[2] = { 0,0 };
         unsigned char * _data = 0;
@@ -74,6 +74,9 @@ struct gltf_loader {
             if(model.nodes[i].mesh > -1 )
                 mesh_ptr = &model.meshes[model.nodes[i].mesh];
         }
+
+		rs.push_back(renderable());
+		renderable & r = rs.back();
 
         if (mesh_ptr == 0)
             return false;
@@ -126,6 +129,14 @@ struct gltf_loader {
                 int bufferviewOffset = model.bufferViews[accessor.bufferView].byteOffset;
 
 				r.add_vertex_attribute<float>((float*) & model.buffers[buffer].data[bufferviewOffset + accessor.byteOffset], 3 * n_vert, attr_index, 3);
+
+				// if the are the position compute the object bounding box
+				if (attr_index == 0) {
+					float * v_ptr = (float*)& model.buffers[buffer].data[bufferviewOffset + accessor.byteOffset];
+					for (unsigned int iv = 0; iv < n_vert; ++iv) 
+						r.bbox.add(glm::vec3(*(v_ptr+iv*3), *(v_ptr+iv*3 + 1), *(v_ptr+iv*3 + 2)));
+					bbox.add(r.bbox);
+				}
 			}
         }
 
@@ -174,53 +185,6 @@ struct gltf_loader {
         }
         
         check_gl_errors(__LINE__, __FILE__);
-    
-
-  /*      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
-            gBufferState[indexAccessor.bufferView].vb);
-        CheckErrors("bind buffer");
-        int mode = -1;
-        if (primitive.mode == TINYGLTF_MODE_TRIANGLES) {
-            mode = GL_TRIANGLES;
-        }
-        else if (primitive.mode == TINYGLTF_MODE_TRIANGLE_STRIP) {
-            mode = GL_TRIANGLE_STRIP;
-        }
-        else if (primitive.mode == TINYGLTF_MODE_TRIANGLE_FAN) {
-            mode = GL_TRIANGLE_FAN;
-        }
-        else if (primitive.mode == TINYGLTF_MODE_POINTS) {
-            mode = GL_POINTS;
-        }
-        else if (primitive.mode == TINYGLTF_MODE_LINE) {
-            mode = GL_LINES;
-        }
-        else if (primitive.mode == TINYGLTF_MODE_LINE_LOOP) {
-            mode = GL_LINE_LOOP;
-        }
-        else {
-            assert(0);
-        }
-        glDrawElements(mode, indexAccessor.count, indexAccessor.componentType,
-            BUFFER_OFFSET(indexAccessor.byteOffset));
-        CheckErrors("draw elements");
-
-        {
-            std::map<std::string, int>::const_iterator it(
-                primitive.attributes.begin());
-            std::map<std::string, int>::const_iterator itEnd(
-                primitive.attributes.end());
-
-            for (; it != itEnd; it++) {
-                if ((it->first.compare("POSITION") == 0) ||
-                    (it->first.compare("NORMAL") == 0) ||
-                    (it->first.compare("TEXCOORD_0") == 0)) {
-                    if (gGLProgramState.attribs[it->first] >= 0) {
-                        glDisableVertexAttribArray(gGLProgramState.attribs[it->first]);
-                    }
-                }
-            }
-        }*/
      }
         return true;
     }

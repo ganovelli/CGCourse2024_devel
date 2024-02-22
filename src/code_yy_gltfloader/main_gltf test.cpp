@@ -6,6 +6,7 @@
 #include "..\common\renderable.h"
 #include "..\common\shaders.h"
 #include "..\common\simple_shapes.h"
+#include "..\common\matrix_stack.h"
 
 #define TINYGLTF_IMPLEMENTATION
 #include "..\common\gltf_loader.h"
@@ -37,7 +38,7 @@ void out_mat(glm::mat4 m) {
 
 }
 
-int main(void)
+int main(int arcgc, char**argv)
 {
 
 
@@ -48,7 +49,7 @@ int main(void)
         return -1;
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(1000, 800, "code_05_my_first_car", NULL, NULL);
+    window = glfwCreateWindow(1000, 800, "code_08_gltf_loader", NULL, NULL);
     if (!window)
     {
         glfwTerminate();
@@ -68,17 +69,20 @@ int main(void)
 	check_gl_errors(__LINE__, __FILE__);
 
 	/* create a  cube   centered at the origin with side 2*/
-	renderable r_cube; 
+	std::vector <renderable> obj; 
 	//r_cube = shape_maker::cube();
 
 	gltf_loader gltfL;
-	gltfL.load("torus.glb");
-	gltfL.create_renderable(r_cube);
+	gltfL.load(argv[1]);
+	box3 bbox;
+	gltfL.create_renderable(obj,bbox);
 
 	glm::mat4 proj = glm::perspective(glm::radians(45.f), 1.33f, 0.1f, 100.f);
 	glm::mat4 view = glm::lookAt(glm::vec3(0, 5, 10.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
 	glUseProgram(basic_shader.program);
+
+	matrix_stack stack;
 
 	glEnable(GL_DEPTH_TEST);
 	float angle = 0;
@@ -98,13 +102,19 @@ int main(void)
         glUseProgram(basic_shader.program);
 		glUniformMatrix4fv(basic_shader["uProj"], 1, GL_FALSE, &proj[0][0]);
 		
-		/* render box and cylinders so that the look like a car */
-		r_cube.bind();
+		stack.push();
+		stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(bbox.diagonal())));
+		stack.mult(glm::translate(glm::mat4(1.f), glm::vec3(-bbox.center())));
+		for (unsigned int i = 0; i < obj.size(); ++i) {
+			obj[i].bind();
 
-		/*draw the cube tranformed into the car's body*/
-		glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &glm::mat4(1.f)[0][0]);
-		glUniform3f(basic_shader["uColor"], 1.0,0.0,0.0);
-		glDrawElements(r_cube().mode, r_cube().count, r_cube().itype, 0);
+			/*draw the cube tranformed into the car's body*/
+			glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
+			glUniform3f(basic_shader["uColor"], 1.0, 0.0, 0.0);
+			glDrawElements(obj[i]().mode, obj[i]().count, obj[i]().itype, 0);
+			
+		}
+		stack.pop();
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

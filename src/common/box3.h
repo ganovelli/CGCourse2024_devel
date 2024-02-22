@@ -40,6 +40,14 @@ struct box3
 		}
 	}
 
+	/** Modify the current bbox to contain also another box
+	*/
+	void add(const box3& b)
+	{
+		add(glm::vec3(b.min));
+		add(glm::vec3(b.max));
+	}
+
 	bool is_empty() const { return min == max; }
 
 	float diagonal() const
