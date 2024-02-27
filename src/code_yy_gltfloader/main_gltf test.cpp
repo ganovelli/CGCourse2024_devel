@@ -8,6 +8,8 @@
 #include "..\common\simple_shapes.h"
 #include "..\common\matrix_stack.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
 #define TINYGLTF_IMPLEMENTATION
 #include "..\common\gltf_loader.h"
 
@@ -21,27 +23,8 @@ and set the path properly.
 
 
 
-//#include <stb_image.h>
-
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include <stb_image_write.h>
-
-
-void out_mat(glm::mat4 m) {
-	std::cout << std::endl;
-	for (int i=0; i < 4; ++i) {
-		for (int j=0; j < 4; ++j)
-			std::cout << m[i][j] << " ";
-		std::cout << std::endl;
-	}
-
-}
-
 int main(int arcgc, char**argv)
 {
-
-
     GLFWwindow* window;
 
     /* Initialize the library */
@@ -68,14 +51,16 @@ int main(int arcgc, char**argv)
 
 	check_gl_errors(__LINE__, __FILE__);
 
-	/* create a  cube   centered at the origin with side 2*/
-	std::vector <renderable> obj; 
-	renderable r_cube = shape_maker::cube();
 
+	// declare a gltf_loader
 	gltf_loader gltfL;
-	gltfL.load(argv[1]);
+
 	box3 bbox;
-	gltfL.create_renderable(obj,bbox);
+	std::vector <renderable> obj;
+
+	// load a gltf scene into a vector of objects of type renderable "obj"
+	// alo return a box containing the whole scene
+	gltfL.load_to_renderable(argv[1],obj, bbox);
 
 	glm::mat4 proj = glm::perspective(glm::radians(45.f), 1.f, 0.2f, 20.f);
 	glm::mat4 view = glm::lookAt(glm::vec3(0, 1, 2.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
@@ -87,6 +72,7 @@ int main(int arcgc, char**argv)
 	matrix_stack stack;
 
 	glEnable(GL_DEPTH_TEST);
+
 	float angle = 0;
 	/* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
@@ -102,26 +88,24 @@ int main(int arcgc, char**argv)
 
 		stack.push();
 		float scale = 1.f / bbox.diagonal();
+		//transate and scale so the the whole scene is included in the unit cube centered in 
+		// the origin in workd space
  		stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(scale, scale, scale)));
 		stack.mult(glm::translate(glm::mat4(1.f), glm::vec3(-bbox.center())));
+
+		// render each renderable
 		for (unsigned int i = 0; i < obj.size(); ++i) {
 			obj[i].bind();
 			stack.push();
+			// each object had its own transformation that was read in the gltf file
 			stack.mult(obj[i].transform);
-			/*draw the cube tranformed into the car's body*/
+
 			glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
 			glUniform3f(basic_shader["uColor"], 1.0, 0.0, 0.0);
 			glDrawElements(obj[i]().mode, obj[i]().count, obj[i]().itype, 0);
 			stack.pop();
 		}
 		stack.pop();
-		
-		//r_cube.bind();
-		////stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(0.2, 0.2, 0.2)));
-		//glUniform3f(basic_shader["uColor"], 1.0, 0.0, 0.0);
-		//glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &glm::mat4(1.f)[0][0]);
-		//glDrawElements(r_cube().mode, r_cube().count, r_cube().itype, 0);
-		
 		stack.pop();
 
         /* Swap front and back buffers */

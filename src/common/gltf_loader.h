@@ -13,9 +13,7 @@ struct gltf_loader {
 	std::string warn;
 
 	std::vector<renderable> rs;
-	std::vector<texture> positions;
 	int n_vert, n_tri;
-
 
 	static std::string GetFilePathExtension(const std::string& FileName) {
 		if (FileName.find_last_of(".") != std::string::npos)
@@ -48,13 +46,6 @@ struct gltf_loader {
 			printf("Failed to load .glTF : %s\n", input_filename.c_str());
 			exit(-1);
 		}
-	}
-
-	template <class type>
-	void copy_triplet(int* dst, type* src) {
-		*(int*)&dst[0] = (int)*((type*)&src[0]);
-		*(int*)&dst[1] = (int)*((type*)&src[1]);
-		*(int*)&dst[2] = (int)*((type*)&src[2]);
 	}
 
 	void visit_node(glm::mat4  currT, int i_node) {
@@ -130,17 +121,17 @@ struct gltf_loader {
 							accessor.ByteStride(model.bufferViews[accessor.bufferView]);
 						assert(byteStride != -1);
 
-						n_vert = accessor.count;
+						n_vert = (int) accessor.count;
 
-						int buffer = model.bufferViews[accessor.bufferView].buffer;
-						int bufferviewOffset = model.bufferViews[accessor.bufferView].byteOffset;
+						size_t buffer = model.bufferViews[accessor.bufferView].buffer;
+						size_t bufferviewOffset = model.bufferViews[accessor.bufferView].byteOffset;
 
 						r.add_vertex_attribute<float>((float*)& model.buffers[buffer].data[bufferviewOffset + accessor.byteOffset], 3 * n_vert, attr_index, 3);
 
 						// if the are the position compute the object bounding box
 						if (attr_index == 0) {
 							float * v_ptr = (float*)& model.buffers[buffer].data[bufferviewOffset + accessor.byteOffset];
-							for (unsigned int iv = 0; iv < n_vert; ++iv)
+							for (  int iv = 0; iv < n_vert; ++iv)
 								r.bbox.add(glm::vec3(*(v_ptr + iv * 3), *(v_ptr + iv * 3 + 1), *(v_ptr + iv * 3 + 2)));
 						}
 					}
@@ -179,15 +170,15 @@ struct gltf_loader {
 
 				// one long texture, just a stub implementation
 				int buffer = model.bufferViews[indexAccessor.bufferView].buffer;
-				int bufferviewOffset = model.bufferViews[indexAccessor.bufferView].byteOffset;
+				size_t bufferviewOffset = model.bufferViews[indexAccessor.bufferView].byteOffset;
 
-				n_tri = indexAccessor.count / 3;
+				size_t n_tri = indexAccessor.count / 3;
 
 				check_gl_errors(__LINE__, __FILE__);
 				switch (indexAccessor.componentType) {
-				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:     r.add_indices<unsigned char>((unsigned char*)&model.buffers[buffer].data[bufferviewOffset + indexAccessor.byteOffset], indexAccessor.count, GL_TRIANGLES); break;
-				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:    r.add_indices<unsigned short>((unsigned short*)&model.buffers[buffer].data[bufferviewOffset + indexAccessor.byteOffset], indexAccessor.count, GL_TRIANGLES); break;
-				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:      r.add_indices<unsigned int>((unsigned int*)&model.buffers[buffer].data[bufferviewOffset + indexAccessor.byteOffset], indexAccessor.count, GL_TRIANGLES); break;
+				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE:     r.add_indices<unsigned char>((unsigned char*)&model.buffers[buffer].data[bufferviewOffset + indexAccessor.byteOffset], (unsigned int)indexAccessor.count, GL_TRIANGLES); break;
+				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:    r.add_indices<unsigned short>((unsigned short*)&model.buffers[buffer].data[bufferviewOffset + indexAccessor.byteOffset], (unsigned int) indexAccessor.count, GL_TRIANGLES); break;
+				case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:      r.add_indices<unsigned int>((unsigned int*)&model.buffers[buffer].data[bufferviewOffset + indexAccessor.byteOffset], (unsigned int) indexAccessor.count, GL_TRIANGLES); break;
 				}
 
 				check_gl_errors(__LINE__, __FILE__);
@@ -201,9 +192,6 @@ struct gltf_loader {
 
 		unsigned char* _data_vert[2] = { 0,0 };
 		unsigned char * _data = 0;
-		int texture_height, max_texture_width = 2048;
-		GLuint  texId;
-
 		tinygltf::Mesh* mesh_ptr = 0;
 		assert(model.scenes.size() > 0);
 
@@ -220,6 +208,11 @@ struct gltf_loader {
 				bbox.add(rs[ir].transform*glm::vec4(rs[ir].bbox.p(ic),1.0));
 		_renderable = rs;
  		return true;
+	}
+
+	void load_to_renderable(std::string input_filename, std::vector<renderable> & _renderable, box3 & bbox) {
+		load(input_filename);
+		create_renderable(_renderable, bbox);
 	}
 
 };

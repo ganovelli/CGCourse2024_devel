@@ -119,13 +119,6 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 		glUseProgram(basic_shader.program);
 
 
-		check_gl_errors(__LINE__, __FILE__);
-		glUseProgram(basic_shader.program);
-
-		check_gl_errors(__LINE__, __FILE__);
-
-
-		check_gl_errors(__LINE__, __FILE__);
 		/* load the shaders */
 		
 		/* define the viewport  */
@@ -136,39 +129,47 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 		glDisable(GL_CULL_FACE);
 
 		tb[0].reset();
-		tb[0].set_center_radius(glm::vec3(0, 0, 0), 500.f);
+		tb[0].set_center_radius(glm::vec3(0, 0, 0), 1.f);
 		curr_tb = 0;
 
-		proj = glm::frustum(-10.f, 10.f, -10.f, 10.f, 1.f, 200.f);
-		view = glm::lookAt(glm::vec3(0, 30.f, 40.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
-		 
-		check_gl_errors(__LINE__, __FILE__);
+		proj = glm::perspective(glm::radians(45.f), 1.f, 1.f, 10.f);
+		view = glm::lookAt(glm::vec3(0, 3.f, 4.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+		glUniformMatrix4fv(basic_shader["uProj"], 1, GL_FALSE, &proj[0][0]);
+		glUniformMatrix4fv(basic_shader["uView"], 1, GL_FALSE, &view[0][0]);
+
 		fr.bind();
-		check_gl_errors(__LINE__, __FILE__);
-		 r.start();
-		 r.update();
+
+		r.start();
+		r.update();
+
+		 matrix_stack stack;
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
 		{
 			/* Render here */
-			glClearColor(0.0, 0.0, 0.0, 1.0);
+			glClearColor(0.0, 0.3, 0.5, 1.0);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 			check_gl_errors(__LINE__, __FILE__);
 
-			//r.update();
+			r.update();
+			stack.load_identity();
+			stack.push();
+			stack.mult(tb[0].matrix());
 
-			glUniformMatrix4fv(basic_shader["uP"], 1, GL_FALSE, &proj[0][0]);
-			glUniformMatrix4fv(basic_shader["uV"], 1, GL_FALSE, &view[0][0]);
-	 		glUniformMatrix4fv(basic_shader["uT"], 1, GL_FALSE, &tb[0].matrix()[0][0]);
-			glUniformMatrix4fv(basic_shader["uM"], 1, GL_FALSE, &r.cars[0].frame[0][0]);
+			stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(0.01f, 0.01f, 0.01f)));
+
+			stack.push();
+			stack.mult(r.cars[0].frame);
+	 		glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
+
 			glDrawElements(fr().mode, fr().count, fr().itype, 0);
+			stack.pop();
 
-	
-			glUniformMatrix4fv(basic_shader["uT"], 1, GL_FALSE, &glm::mat4(1.f)[0][0]);
-			glUniformMatrix4fv(basic_shader["uM"], 1, GL_FALSE, &glm::mat4(1.f)[0][0]);
-			glDrawElements(fr().mode, fr().count, fr().itype, 0);
+			//glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
+			//glDrawElements(fr().mode, fr().count, fr().itype, 0);
 
+			stack.pop();
 			/* Swap front and back buffers */
 			glfwSwapBuffers(window);
 

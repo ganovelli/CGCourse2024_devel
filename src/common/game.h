@@ -18,20 +18,11 @@ struct region_object {
 	std::vector<glm::vec3> contour;
 };
 
-struct lamp :public point_object{
-	lamp():height(0){};
+struct stick_object :public point_object{
+	stick_object():height(0){};
 	float height;
 };
 
-struct tree :public point_object {
-	tree():height(0) {};
-	float height;
-};
-
-struct photographer :public point_object {
-	photographer() : height(0) {};
-	float height;
-};
 
 
  
@@ -75,9 +66,9 @@ struct scene {
 	track t;
 
 	glm::vec3 sunlight_direction;
-	std::vector<tree> trees;
-	std::vector<tree> lamps;
-	std::vector<tree> photographers;
+	std::vector<stick_object> trees;
+	std::vector<stick_object> lamps;
+	std::vector<stick_object> photographers;
 };
 
 
@@ -95,14 +86,16 @@ struct race {
 		if (h != -1) 
 			sim_time = (s + m * 60 + h * 3600) * 1000;
 		else
-			sim_time = ( 10 * 3600) * 1000; // start at then in the morning
+			sim_time = ( 10 * 3600) * 1000; // start at ten in the morning
 		if (_sim_time_ratio != 60)
 			sim_time_ratio = _sim_time_ratio;
 	}
 
 	void update() {
 		for (size_t i = 0; i < cars.size();++i) {
-			cars[i].frame = cars[i].p.frames[((clock() - clock_start) /1000* 30) % cars[i].p.frames.size()];
+			int ii = ((int)((clock() - clock_start) / 1000.f * 30.f)) % cars[i].p.frames.size();
+			std::cout << ii << std::endl;
+			cars[i].frame = cars[i].p.frames[ii];
 		}
 	}
 
