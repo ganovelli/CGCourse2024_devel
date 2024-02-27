@@ -140,18 +140,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 			// set the state of trackball being dragged to true
 			is_trackball_dragged = true;
-	
-			//// find the hit point
-			//float depthvalue;
-			//glReadPixels(xpos, height - ypos, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depthvalue);
-			//glm::vec3 hit = glm::unProject(glm::vec3(xpos, height - ypos, depthvalue), view, proj, glm::vec4(0, 0, 1000, 800));
-			//std::cout << " hit point " << glm::to_string(hit) << std::endl;
-
-			//// find the object that was hit (color coding)
-			//GLfloat col[4];
-			//glReadPixels(xpos, height - ypos, 1, 1, GL_RGBA, GL_FLOAT, &col);
-			//std::cout << " rgba " << col[0] * 255.f << " " << col[1] * 255.f << " " << col[2] * 255.f << " " << col[3] * 255.f << std::endl;
-
 		}
 	}
 	else
