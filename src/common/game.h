@@ -41,7 +41,9 @@ struct track {
 
 struct path {
 
-	std::vector<glm::mat4> frames; // frames[i] is the frame at time i* (1000.f/30.0) in milliseconds
+	// store one frame every 1/30 of second
+	// frames[i] is the frame at time i* (1000.f/30.0) in milliseconds
+	std::vector<glm::mat4> frames; 
 
 	int T; // how many milliseconds for a lap to complete
 };
@@ -54,6 +56,7 @@ struct car {
 	// box is the bounding box of the car, expressed in "frame"
 	box3 box;
 	 
+	// the path followed by the car
 	path p;
 };
 
@@ -77,9 +80,12 @@ struct race {
 
 	scene s;
 	int clock_start;
+
+	// simulation sunlight time in milliseconds
 	int sim_time;
 
-	int sim_time_ratio; // how long a real second in simulated sunlight time
+	// how long a real second in simulated sunlight time
+	int sim_time_ratio; 
 
 	void start( int h = -1, int m = -1, int s = -1, int _sim_time_ratio = 60) {
 		clock_start = clock();

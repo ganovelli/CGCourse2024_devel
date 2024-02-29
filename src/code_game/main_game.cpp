@@ -8,6 +8,7 @@
 #include "..\common\simple_shapes.h"
 #include "..\common\game.h"
 #include "..\common\game_builder.h"
+#include "..\common\game_to_renderable.h"
 
 #include <iostream>
 #include <algorithm>
@@ -112,6 +113,14 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 
 		renderable fr = shape_maker::cube();
 
+		renderable r_track;
+		r_track.create();
+		game_to_renderable::to_track(r, r_track);
+
+		renderable r_terrain;
+		r_terrain.create();
+		game_to_renderable::to_heightfield(r, r_terrain);
+
 		shader basic_shader;
 		basic_shader.create_program("shaders/basic.vert", "shaders/basic.frag");
 
@@ -132,17 +141,19 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 		tb[0].set_center_radius(glm::vec3(0, 0, 0), 1.f);
 		curr_tb = 0;
 
-		proj = glm::perspective(glm::radians(45.f), 1.f, 1.f, 10.f);
-		view = glm::lookAt(glm::vec3(0, 3.f, 4.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+		proj = glm::perspective(glm::radians(45.f), 1.f, 1.f, 100.f);
+//		proj = glm::ortho(-30.f,30.f,-30.f,30.f, 1.f, 10.f);
+
+		view = glm::lookAt(glm::vec3(0, 30.f, 0), glm::vec3(0.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
 		glUniformMatrix4fv(basic_shader["uProj"], 1, GL_FALSE, &proj[0][0]);
 		glUniformMatrix4fv(basic_shader["uView"], 1, GL_FALSE, &view[0][0]);
-
-		fr.bind();
 
 		r.start();
 		r.update();
 
 		 matrix_stack stack;
+
+		 glEnable(GL_DEPTH_TEST);
 		/* Loop until the user closes the window */
 		while (!glfwWindowShouldClose(window))
 		{
@@ -163,11 +174,23 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 			stack.mult(r.cars[0].frame);
 	 		glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
 
+			fr.bind();
 			glDrawElements(fr().mode, fr().count, fr().itype, 0);
+
+
 			stack.pop();
 
-			//glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
-			//glDrawElements(fr().mode, fr().count, fr().itype, 0);
+			glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
+	
+			r_track.bind();
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, r_track.vn);
+			
+			r_terrain.bind();
+			glDrawArrays(GL_POINTS, 0, 10000);
+	//		glDrawElements(r_terrain().mode, r_terrain().count, r_terrain().itype, 0);		 
+
+
+
 
 			stack.pop();
 			/* Swap front and back buffers */
