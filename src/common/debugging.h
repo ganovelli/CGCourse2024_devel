@@ -84,9 +84,11 @@ static bool validate_shader_program(  GLuint  s){
 	glValidateProgram(s);
 	glGetProgramiv(s,GL_VALIDATE_STATUS,&res);
 	std::cout << "validation of program " << s << " " << res << std::endl;
+	if (res != GL_TRUE) return false;
 
 	glGetProgramiv(s,GL_LINK_STATUS,&res);
 	std::cout << "linking of program " << s << " " << res << std::endl;
+	if (res != GL_TRUE) return false;
 
 	glGetProgramiv(s,GL_ACTIVE_ATTRIBUTES,&res);
 	std::cout << "active attribute of program " << s << " " << res << std::endl;
@@ -96,7 +98,8 @@ static bool validate_shader_program(  GLuint  s){
 
 	glGetProgramiv(s,GL_ACTIVE_UNIFORM_MAX_LENGTH,&res);
 	std::cout << "active uniform Max Length of program " << s << " " << res << std::endl;
-	return (res == 1);
+	return true;
 }
+
 
 #endif
