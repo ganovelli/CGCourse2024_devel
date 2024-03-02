@@ -230,7 +230,7 @@ int main(void)
 	check_gl_errors(__LINE__, __FILE__);
 
 	/* Transformation to setup the point of view on the scene */
-	proj = glm::perspective(glm::radians(40.f),width/float(height), 1.5f, 20.f);
+	proj = glm::frustum(-1.f,1.f,-1.f,1.f, 1.5f, 20.f);
 	view = glm::lookAt(glm::vec3(0, 6, 8.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 	view_frame = glm::inverse(view);
 
