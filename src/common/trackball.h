@@ -30,27 +30,31 @@ class trackball {
 	float radius;
 
 
-	/* transform from viewport to window coordinates in thee view reference frame */
-	glm::vec2 viewport_to_view(glm::mat4 proj, double pX, double pY) {
+	/* transform from viewport to the view reference frame */
+	void viewport_to_ray(glm::mat4 proj, double pX, double pY, glm::vec4  &p0, glm::vec4 &  d) {
 		GLint vp[4];
 		glm::mat4 proj_inv = glm::inverse(proj);
 		glGetIntegerv(GL_VIEWPORT, vp);
-		glm::vec4 res(0.f);
-		res.x = -1.f + ((float)pX / vp[2])  * (1.f - (-1.f));
-		res.y = -1.f + ((vp[3] - (float)pY) / vp[3]) * (1.f - (-1.f));
-		res.w = 1.0;
-		res = proj_inv*res;
-		return glm::vec2(res.x, res.y);
+		glm::vec4 p1;
+		p1.x = p0.x = -1.f + ((float)pX / vp[2])  * (1.f - (-1.f));
+		p1.y = p0.y = -1.f + ((vp[3] - (float)pY) / vp[3]) * (1.f - (-1.f));
+		p0.z = -1;
+		p1.z = 1;
+		p1.w = p0.w = 1.0;
+		p0 = proj_inv*p0; p0 /= p0.w;
+		p1 = proj_inv*p1; p1 /= p1.w;
+		d = glm::normalize(p1 - p0);
 	}
-
 	/* handles the intersection between the position under the mouse and the sphere.
 	*/
 	bool cursor_sphere_intersection(glm::mat4 proj, glm::mat4 view, glm::vec3 & int_point, double xpos, double ypos) {
-		glm::vec2 pos2 = viewport_to_view(proj, xpos, ypos);
-
 		glm::mat4 view_frame = glm::inverse(view);
-		glm::vec3 o = view_frame*  glm::vec4(glm::vec3(0.f, 0.f, 0.f), 1.f);
-		glm::vec3 d = view_frame*  glm::vec4(glm::vec3(pos2, -2.f), 0.f);
+
+		glm::vec4 o,d;
+		viewport_to_ray(proj, xpos, ypos,o ,d );
+
+		o  = view_frame* o  ;
+		d  = view_frame* d  ;
 
 		bool hit = intersection_ray::sphere(int_point, o, d, center, radius);
 		if (hit)
@@ -66,7 +70,6 @@ public:
 		scaling_factor = 1.f;
 		scaling_matrix = glm::mat4(1.f);
 		rotation_matrix = glm::mat4(1.f);
-		//is_trackball_dragged = false;
 	}
 	void set_center_radius(glm::vec3 c, float r) {
 		center = c;
