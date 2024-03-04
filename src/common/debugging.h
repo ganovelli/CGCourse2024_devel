@@ -84,8 +84,13 @@ static bool validate_shader_program(  GLuint  s){
 	glValidateProgram(s);
 	glGetProgramiv(s,GL_VALIDATE_STATUS,&res);
 	std::cout << "validation of program " << s << " " << res << std::endl;
-	if (res != GL_TRUE) return false;
-
+	if (res != GL_TRUE) {
+		GLchar infoLog[65536];
+		int length;
+		glGetProgramInfoLog(s,65536,&length,&infoLog[0]);
+		std::cout << infoLog << "\n";
+		return false;
+	}
 	glGetProgramiv(s,GL_LINK_STATUS,&res);
 	std::cout << "linking of program " << s << " " << res << std::endl;
 	if (res != GL_TRUE) return false;
