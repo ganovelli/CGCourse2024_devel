@@ -16,9 +16,10 @@ uniform vec3 uEmissiveColor;
 uniform vec3 uLightColor;
 uniform float uShininess;
 
-/* phong */
+/* phong lighting */
 vec3 phong ( vec3 L, vec3 V, vec3 N){
 	float LN = max(0.0,dot(L,N));
+
 	vec3 R = -L+2*dot(L,N)*N;
 
 	float spec = ((LN>0.f)?1.f:0.f) * max(0.0,pow(dot(V,R),uShininess));
@@ -41,19 +42,8 @@ void main(void)
 		color = vec4(phong(vLDirVS,normalize(-vPosVS),normalize(vNormalVS)),1.0);
 	}
 	else
-	color = vec4(normalize(vNormalVS),1.0);
-
-
-//	color = vec4(1,1,1,1.0);
-	 
-//	color = vec4(1,1,1,1);
-
-   // this part uses concept we haven't covered yet. Please ignore it
-//   vec3 N = normalize(cross(dFdx(vPos),dFdy(vPos)));
-//   vec3 L0 = normalize(uLDir);
- 
-//   float contrib = max(0.f,dot(N,L0));
-
-//   color = vec4(uColor*contrib, 1.0); 
-
+	/* just output the interpolated vertex normal as color		*/
+	/* Note: normal is a vector with values in [-1,-1,-1][1,1,1]*/
+	/* and  must be remapped in  in [0,0,0][1,1,1]				*/ 
+	color = vec4(normalize(vNormalVS)*0.5+0.5,1.0);
 } 

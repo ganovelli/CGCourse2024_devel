@@ -511,7 +511,7 @@ struct shape_maker {
 
 			s.positions.push_back(x);
 			s.positions.push_back(0.0f);
-			s.positions.push_back(z);
+			s.positions.push_back(-z);
 		}
 
 		// Add the top vertex of the cone
@@ -519,7 +519,7 @@ struct shape_maker {
 		s.positions.push_back(height); // y
 		s.positions.push_back(0.0f); // z
 
-								   // Create indices_triangles for the base of the cone
+		// Create indices_triangles for the base of the cone
 		for (int i = 0; i < segments - 1; ++i) {
 			s.indices_triangles.push_back(i);
 			s.indices_triangles.push_back(i + 1);

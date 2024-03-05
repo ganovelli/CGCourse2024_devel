@@ -11,7 +11,6 @@ uniform mat4 uProj;
 uniform mat4 uView;
 uniform mat4 uModel;
 uniform vec3 uLDir;
-uniform vec3 uColor;
 
 uniform int	 uShadingMode;
 uniform vec3 uDiffuseColor;
@@ -21,14 +20,17 @@ uniform vec3 uEmissiveColor;
 uniform vec3 uLightColor;
 uniform float uShininess;
 
-/* phong */
+/* phong lighting */
 vec3 phong ( vec3 L, vec3 V, vec3 N){
 	float LN = max(0.0,dot(L,N));
+
 	vec3 R = -L+2*dot(L,N)*N;
-	float spec = max(0.0,pow(dot(V,R),uShininess));
+
+	float spec = ((LN>0.f)?1.f:0.f) * max(0.0,pow(dot(V,R),uShininess));
 
 	return (uAmbientColor+LN*uDiffuseColor + spec * uSpecularColor)*uLightColor;
 }
+
 
 
 void main(void) 
