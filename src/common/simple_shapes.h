@@ -8,6 +8,8 @@ class shape {
 public:
 	std::vector<float> positions;
 	std::vector<float> colors;
+	std::vector<float> normals;
+
 	std::vector<unsigned int> indices_triangles;
 	std::vector<unsigned int> indices_edges;
 
@@ -20,6 +22,12 @@ public:
 		positions[i * 3]	= p.x;
 		positions[i * 3+1]	= p.y;
 		positions[i * 3+2]	= p.z;
+	}
+
+	void set_norm(unsigned int i, const glm::vec3 &  p) {
+		normals[i * 3] = p.x;
+		normals[i * 3 + 1] = p.y;
+		normals[i * 3 + 2] = p.z;
 	}
 
 	unsigned int * ind(unsigned int i)  { return &indices_triangles[3 * i]; }
@@ -43,6 +51,9 @@ public:
 
 		if(!colors.empty())
 			r.add_vertex_attribute<float>(&colors[0], 3 * vn, 1, 3);
+
+		if (!normals.empty())
+			r.add_vertex_attribute<float>(&normals[0], 3 * vn, 2, 3);
 
 		if(!indices_triangles.empty())
 			r.add_indices<GLuint>(&indices_triangles[0], (unsigned int) indices_triangles.size(), GL_TRIANGLES);
@@ -257,6 +268,7 @@ struct shape_maker {
 		shape s;
 		renderable r;
 		s.positions = { -1,-1,0,  1,-1,0, 1,1,0, -1,1,0 };
+		s.normals = {0,0,1, 0,0,1, 0,0,1, 0,0,1 };
 		s.indices_triangles = { 0,1,2, 0,2,3 };
 		s.vn = 4;
 		s.fn = 2;
@@ -462,11 +474,13 @@ struct shape_maker {
 				ico.fn += 4;
 			}
 
+			ico.normals.resize(ico.positions.size());
 			for (unsigned int i = 0; i < ico.vn; i++)
 			{
 				glm::vec3 p = ico.get_pos(i);
 				p = glm::normalize(p);
 				ico.set_pos(i, p);
+				ico.set_norm(i, p);
 			}
 
 		}

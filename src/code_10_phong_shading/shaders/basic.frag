@@ -13,33 +13,36 @@ uniform vec3 uDiffuseColor;
 uniform vec3 uAmbientColor;
 uniform vec3 uSpecularColor;
 uniform vec3 uEmissiveColor;
+uniform vec3 uLightColor;
 uniform float uShininess;
 
 /* phong */
-vec3 phong ( vec3 L, vec3 pos, vec3 N){
-return vec3(0,0,0);
-/*
+vec3 phong ( vec3 L, vec3 V, vec3 N){
 	float LN = max(0.0,dot(L,N));
-
 	vec3 R = -L+2*dot(L,N)*N;
-	float spec = max(0.0,pow(dot(normalize(-pos),R),10));
 
-	return LN*uDiffuseColor + spec * uDiffuseColor*vec3(0.2,0.2,0.8);
-	*/
+	float spec = ((LN>0.f)?1.f:0.f) * max(0.0,pow(dot(V,R),uShininess));
+
+	return (uAmbientColor+LN*uDiffuseColor + spec * uSpecularColor)*uLightColor;
 }
 
 void main(void) 
 {    
-	if(uShadingMode == 2){
-		color = vec4(phong(vLDirVS,normalize(vPosVS),normalize(vNormalVS)),1.0);
-	}
-	else
-	if(uShadingMode == 3){
+	if(uShadingMode == 1){
 		vec3 N = normalize(cross(dFdx(vPosVS),dFdy(vPosVS)));
-		color = vec4(phong(vLDirVS,vPosVS,N),1.0);
+		color = vec4(phong(vLDirVS,normalize(-vPosVS),N),1.0);
 	}
  	else
-	color = vec4(vColor,1.0);
+	if(uShadingMode == 2){
+		color = vec4(vColor,1.0);
+	}
+ 	else
+	if(uShadingMode == 3){
+		color = vec4(phong(vLDirVS,normalize(-vPosVS),normalize(vNormalVS)),1.0);
+	}
+	else
+	color = vec4(normalize(vNormalVS)*0.5+0.5,1.0);
+//	color = vec4(1,1,1,1.0);
 	 
 //	color = vec4(1,1,1,1);
 
