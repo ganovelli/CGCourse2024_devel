@@ -41,7 +41,9 @@ void main(void)
 		color = vec4(phong(vLDirVS,normalize(-vPosVS),normalize(vNormalVS)),1.0);
 	}
 	else
-	color = vec4(normalize(vNormalVS)*0.5+0.5,1.0);
+	color = vec4(normalize(vNormalVS),1.0);
+
+
 //	color = vec4(1,1,1,1.0);
 	 
 //	color = vec4(1,1,1,1);

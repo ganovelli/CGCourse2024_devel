@@ -35,7 +35,7 @@ void main(void)
 { 
 	
 	vLDirVS   =  (uView*vec4(uLDir,0.f)).xyz; 
-	vNormalVS =  (uView*uModel*vec4(aNormal, 1.0)).xyz; 
+	vNormalVS =  (uView*uModel*vec4(aNormal, 0.0)).xyz; 
 
 	vPosVS = (uView*uModel*vec4(aPosition, 1.0)).xyz; 
 	
