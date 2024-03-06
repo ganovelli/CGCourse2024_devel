@@ -299,8 +299,8 @@ int main(int argc , char ** argv)
 	curr_tb = 0;
 
 	
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, gltfL.id_texture);
+	glActiveTexture(GL_TEXTURE0);
+	
 
 	glEnable(GL_DEPTH_TEST);
 	glUseProgram(basic_shader.program);
@@ -311,7 +311,7 @@ int main(int argc , char ** argv)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.8f, 0.8f, 0.9f, 1.f);
 	
-		glUniform1i(basic_shader["uTexColor"], 1);
+		glUniform1i(basic_shader["uTexColor"], 0);
 
 		glUniform1i(basic_shader["uShadingMode"], shading_mode);
 		glUniform3fv(basic_shader["uDiffuseColor"], 1, &d_color[0]);
@@ -342,9 +342,19 @@ int main(int argc , char ** argv)
 				stack.push();
 				// each object had its own transformation that was read in the gltf file
 				stack.mult(obj[i].transform);
-				glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
-				glUniform3f(basic_shader["uColor"], 1.0, 0.0, 0.0);
-				glDrawElements(obj[i]().mode, obj[i]().count, obj[i]().itype, 0);
+
+				if (obj[i].mater.base_color_texture != -1)
+				{
+					glUniform1i(basic_shader["uUseTexture"], 1);
+					glBindTexture(GL_TEXTURE_2D, obj[i].mater.base_color_texture);
+					
+				}
+				else 
+					glUniform1i(basic_shader["uUseTexture"], 0);
+
+					glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
+					glUniform3f(basic_shader["uColor"], 1.0, 0.0, 0.0);
+					glDrawElements(obj[i]().mode, obj[i]().count, obj[i]().itype, 0);	
 				stack.pop();
 			}
 			stack.pop(); // setup model transformation for loaded object

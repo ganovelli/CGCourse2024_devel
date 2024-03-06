@@ -19,7 +19,7 @@ struct gltf_loader {
 	std::string warn;
 
 	std::vector<renderable> rs;
-	GLuint id_texture;
+	std::vector<GLuint> id_textures;
 	int n_vert, n_tri;
 
 	static std::string GetFilePathExtension(const std::string& FileName) {
@@ -197,6 +197,12 @@ struct gltf_loader {
 				}
 
 				check_gl_errors(__LINE__, __FILE__);
+
+				// setup the material
+				tinygltf::Material mat = model.materials[primitive.material];
+				int index = mat.pbrMetallicRoughness.baseColorTexture.index;
+				r.mater.base_color_texture = (index != -1)?this->id_textures[index]:-1;
+
 			}
 			//	return true;
 		}
@@ -211,6 +217,8 @@ struct gltf_loader {
 		assert(model.scenes.size() > 0);
 
 		check_gl_errors(__LINE__, __FILE__);
+
+
 		// load texture
 		for (unsigned int it = 0; it < model.textures.size(); ++it) {
 			tinygltf::Texture& texture = model.textures[it];
@@ -239,9 +247,10 @@ struct gltf_loader {
 
 			//			stbi_write_png("read_texture.png", x, y, 4, data, 0);
 
-			glGenTextures(1, &id_texture);
+			id_textures.push_back(0);
+			glGenTextures(1, &id_textures.back());
 
-			glBindTexture(GL_TEXTURE_2D, id_texture);
+			glBindTexture(GL_TEXTURE_2D, id_textures.back());
 			glTexImage2D(GL_TEXTURE_2D, 0, gl_format, image.width, image.height, 0, gl_format, image.pixel_type, data);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, sampler.wrapS);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, sampler.wrapT);

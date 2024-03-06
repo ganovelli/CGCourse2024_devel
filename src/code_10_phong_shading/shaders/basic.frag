@@ -6,6 +6,8 @@ in vec3 vNormalVS;
 in vec3 vLDirVS;
 
 uniform sampler2D uTexColor;
+uniform int uUseTexture;
+
 uniform vec3 uLDir;
 uniform vec3 uColor;
 
@@ -37,7 +39,9 @@ void main(void)
  	else
 	if(uShadingMode == 2){
 		color = vec4(vColor,1.0);
-		color = texture2D(uTexColor,vColor.xy);
+		if(uUseTexture==1){
+			color = texture2D(uTexColor,vColor.xy);
+			}
 	}
  	else
 	if(uShadingMode == 3){

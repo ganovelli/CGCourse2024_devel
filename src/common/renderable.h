@@ -7,7 +7,7 @@
 struct material {
 	std::string name;
 	glm::vec4 base_color_factor;
-	// texture * base_color_texture; 
+	GLint base_color_texture; 
 	float metallic_factor;
 	float roughness_factor;
 };
@@ -43,6 +43,8 @@ struct renderable {
 
 	// transformation matrix
 	glm::mat4 transform;
+
+	material mater;
 
 	void create() {
 		glGenVertexArrays(1, &vao);
