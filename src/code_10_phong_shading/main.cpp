@@ -135,6 +135,8 @@ float shininess = 1.0;
 	shading_mode = 1 // flat shading
 	shading_mode = 2 // Gauraud shading
 	shading_mode = 3 // Phong shading
+	shading_mode = 4 // pbrBaseTexture
+
 */
 int shading_mode = 0;
 
@@ -149,6 +151,7 @@ void gui_setup() {
 		if (ImGui::Selectable("Flat-Per Face ", shading_mode == 1)) shading_mode = 1;
 		if (ImGui::Selectable("Gaurad", shading_mode == 2)) shading_mode = 2;
 		if (ImGui::Selectable("Phong", shading_mode == 3)) shading_mode = 3;
+		if (ImGui::Selectable("Base Texture", shading_mode == 4)) shading_mode = 4;
 		ImGui::EndMenu();
 	}
 	if (ImGui::BeginMenu("Light ")) {
@@ -333,7 +336,6 @@ int main(int argc , char ** argv)
 			//transate and scale so the the whole scene is included in the unit cube centered in 
 			// the origin in workd space
 			stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(scale, scale, scale)));
-			stack.mult(glm::translate(glm::mat4(1.f), glm::vec3(0, (bbox.max.y - bbox.min.y)*0.5, 0)));
 			stack.mult(glm::translate(glm::mat4(1.f), glm::vec3(-bbox.center())));
 
 			// render each renderable
@@ -343,18 +345,12 @@ int main(int argc , char ** argv)
 				// each object had its own transformation that was read in the gltf file
 				stack.mult(obj[i].transform);
 
-				if (obj[i].mater.base_color_texture != -1)
-				{
-					glUniform1i(basic_shader["uUseTexture"], 1);
+				if (shading_mode==4 && obj[i].mater.base_color_texture != -1)
 					glBindTexture(GL_TEXTURE_2D, obj[i].mater.base_color_texture);
-					
-				}
-				else 
-					glUniform1i(basic_shader["uUseTexture"], 0);
 
-					glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
-					glUniform3f(basic_shader["uColor"], 1.0, 0.0, 0.0);
-					glDrawElements(obj[i]().mode, obj[i]().count, obj[i]().itype, 0);	
+				glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
+				glUniform3f(basic_shader["uColor"], 1.0, 0.0, 0.0);
+				glDrawElements(obj[i]().mode, obj[i]().count, obj[i]().itype, 0);	
 				stack.pop();
 			}
 			stack.pop(); // setup model transformation for loaded object

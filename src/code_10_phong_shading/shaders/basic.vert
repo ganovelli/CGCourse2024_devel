@@ -7,7 +7,7 @@ out vec3 vLDirVS;
 out vec3 vPosVS;
 out vec3 vNormalVS;
 out vec3 vColor;
-
+out vec2 vTexCoord0;
 
 uniform mat4 uProj;
 uniform mat4 uView;
@@ -45,7 +45,7 @@ void main(void)
 	
 	/* compute lighiting in the vertex shader (Gauraud shading) */
 	vColor    = phong(vLDirVS,normalize(-vPosVS),normalize(vNormalVS));
-	vColor    = vec3(aTexCoord,0.0);
+	vTexCoord0    = aTexCoord;
 
     gl_Position = uProj*uView*uModel*vec4(aPosition, 1.0); 
 }
