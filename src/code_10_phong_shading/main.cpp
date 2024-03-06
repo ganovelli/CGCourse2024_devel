@@ -298,7 +298,10 @@ int main(int argc , char ** argv)
 	tb[1].set_center_radius(glm::vec3(0, 0, 0), 2.f);
 	curr_tb = 0;
 
-	 
+	
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, gltfL.id_texture);
+
 	glEnable(GL_DEPTH_TEST);
 	glUseProgram(basic_shader.program);
 /* Loop until the user closes the window */
@@ -308,6 +311,8 @@ int main(int argc , char ** argv)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(0.8f, 0.8f, 0.9f, 1.f);
 	
+		glUniform1i(basic_shader["uTexColor"], 1);
+
 		glUniform1i(basic_shader["uShadingMode"], shading_mode);
 		glUniform3fv(basic_shader["uDiffuseColor"], 1, &d_color[0]);
 		glUniform3fv(basic_shader["uAmbientColor"], 1, &a_color[0]);

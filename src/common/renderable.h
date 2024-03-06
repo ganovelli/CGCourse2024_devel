@@ -2,6 +2,16 @@
 #include <GL/glew.h>
 #include <vector>
 #include "box3.h"
+//#include "texture.h"
+
+struct material {
+	std::string name;
+	glm::vec4 base_color_factor;
+	// texture * base_color_texture; 
+	float metallic_factor;
+	float roughness_factor;
+};
+
 
 struct renderable {
 
@@ -146,6 +156,24 @@ struct renderable {
 		unsigned int stride,
 		unsigned int offset) {
 		return this->add_vertex_attribute(values, count, attribute_index, num_components, (unsigned int)GL_FLOAT, stride, offset);
+	}
+
+	template <>
+	GLuint add_vertex_attribute(const char * values, unsigned int count,
+		unsigned int attribute_index,
+		unsigned int num_components,
+		unsigned int stride,
+		unsigned int offset) {
+		return this->add_vertex_attribute(values, count, attribute_index, num_components, (unsigned int)GL_BYTE, stride, offset);
+	}
+
+	template <>
+	GLuint add_vertex_attribute(const unsigned char* values, unsigned int count,
+		unsigned int attribute_index,
+		unsigned int num_components,
+		unsigned int stride,
+		unsigned int offset) {
+		return this->add_vertex_attribute(values, count, attribute_index, num_components, (unsigned int)GL_UNSIGNED_BYTE, stride, offset);
 	}
 };
 

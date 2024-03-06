@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="..\..\3dparty\tinygltf\tiny_gltf.h" />
+    <ClInclude Include="..\..\src\common\box3.h" />
+    <ClInclude Include="..\..\src\common\debugging.h" />
+    <ClInclude Include="..\..\src\common\frame_buffer_object.h" />
+    <ClInclude Include="..\..\src\common\game.h" />
+    <ClInclude Include="..\..\src\common\game_builder.h" />
+    <ClInclude Include="..\..\src\common\game_to_renderable.h" />
+    <ClInclude Include="..\..\src\common\gltf_loader.h" />
+    <ClInclude Include="..\..\src\common\intersection.h" />
+    <ClInclude Include="..\..\src\common\matrix_stack.h" />
+    <ClInclude Include="..\..\src\common\obj_loader.h" />
+    <ClInclude Include="..\..\src\common\renderable.h" />
+    <ClInclude Include="..\..\src\common\shaders.h" />
+    <ClInclude Include="..\..\src\common\simple_shapes.h" />
+    <ClInclude Include="..\..\src\common\texture.h" />
+    <ClInclude Include="..\..\src\common\trackball.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="imgui">
+      <UniqueIdentifier>{1b3e15b7-b1c4-4096-b06f-e7a3cd571a99}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\3dparty\imgui\backends\imgui_impl_glfw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3dparty\imgui\backends\imgui_impl_opengl3.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3dparty\imgui\imgui.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3dparty\imgui\imgui_draw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3dparty\imgui\imgui_tables.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\3dparty\imgui\imgui_widgets.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
