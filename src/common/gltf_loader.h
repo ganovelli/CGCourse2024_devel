@@ -200,8 +200,17 @@ struct gltf_loader {
 
 				// setup the material
 				tinygltf::Material mat = model.materials[primitive.material];
-				int index = mat.pbrMetallicRoughness.baseColorTexture.index;
-				r.mater.base_color_texture = (index != -1)?this->id_textures[index]:-1;
+				int index;
+				
+				index = mat.pbrMetallicRoughness.baseColorTexture.index;
+				r.mater.base_color_texture = (index != -1)?this->id_textures[index]: this->id_textures[0];
+
+				index = mat.normalTexture.index;
+				r.mater.normal_texture = (index != -1) ? this->id_textures[index] : -1;
+
+				index = mat.emissiveTexture.index;
+				r.mater.emissive_texture = (index != -1) ? this->id_textures[index] : -1;
+
 
 			}
 			//	return true;
@@ -245,7 +254,7 @@ struct gltf_loader {
 			int  channels_in_file;
 			stbi_uc* data = stbi_load_from_memory(v_ptr, bufferview.byteLength, &x, &y, &channels_in_file, image.component);
 
-			//			stbi_write_png("read_texture.png", x, y, 4, data, 0);
+			stbi_write_png("read_texture.png", x, y, 4, data, 0);
 
 			id_textures.push_back(0);
 			glGenTextures(1, &id_textures.back());

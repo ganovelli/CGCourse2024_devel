@@ -10,6 +10,9 @@ struct material {
 	GLint base_color_texture; 
 	float metallic_factor;
 	float roughness_factor;
+	GLint normal_texture;
+	GLint emissive_texture;
+
 };
 
 

@@ -46,7 +46,8 @@ void main(void)
 	}
 	else
 	if(uShadingMode == 4 ){
-			color = texture2D(uTexColor,vTexCoord0.xy);
+			color = vec4(phong(vLDirVS,normalize(-vPosVS),normalize(vNormalVS)),1.0);
+			color = texture2D(uTexColor,vTexCoord0.xy)*(color.x+color.y+color.z)/3.f;
 	}
 	else
 	/* just output the interpolated vertex normal as color		*/
