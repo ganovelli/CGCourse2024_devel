@@ -19,15 +19,17 @@ struct game_to_renderable {
 
 	static void to_heightfield(const race& r, renderable& r_hf) {
 		std::vector<unsigned int > buffer_id;
-		const unsigned int& Y = r.s.height_field.size();
-		const unsigned int& X = r.s.height_field[0].size();
+		const unsigned int& Y = r.s.ter.height_field.size();
+		const unsigned int& X = r.s.ter.height_field[0].size();
+
+		terrain ter = r.s.ter;
 
 		std::vector<float>   hf3d;
 		for (int iy = 0; iy < Y; ++iy)
 			for (int ix = 0; ix < X; ++ix) {
-				hf3d.push_back(-20 + (ix / float(X)) * 40.f);
-				hf3d.push_back(r.s.height_field[iy][ix]);
-				hf3d.push_back(-20 + (iy / float(Y) * 40.f));
+				hf3d.push_back(ter.rect_xz[0] + (ix / float(X)) * ter.rect_xz[2]);
+				hf3d.push_back(r.s.ter.height_field[iy][ix]);
+				hf3d.push_back(ter.rect_xz[1] + (iy / float(Y)) * ter.rect_xz[3]);
 			}
 
 		for (int iy = 0; iy < Y-1; ++iy)

@@ -61,11 +61,31 @@ struct car {
 };
 
 
-struct scene {
+struct terrain {
 
 	// terrain specified as an height field
 	std::vector< std::vector<float> > height_field;
 
+	// rectangle in xz where the terrain is located (minx,miny,sizex,sizey)
+	glm::vec4 rect_xz;
+	glm::ivec2 size_pix;
+
+	float y(float x, float z) {
+		
+		int yy = (z - rect_xz[1]) ;
+		int xx = (x - rect_xz[0]) ;
+		float sy = rect_xz[3] / size_pix[1];
+		float sx = rect_xz[1] / size_pix[0];
+		// continue add interpolation
+
+		return height_field[(z - rect_xz[1]) / rect_xz[3] * size_pix[1]][(x - rect_xz[0]) / rect_xz[2] * size_pix[0]];
+	}
+
+};
+
+struct scene {
+
+	terrain ter;
 	track t;
 
 	glm::vec3 sunlight_direction;
