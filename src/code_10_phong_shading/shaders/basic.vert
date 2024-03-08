@@ -1,7 +1,7 @@
 #version 460 core 
 layout (location = 0) in vec3 aPosition; 
 layout (location = 2) in vec3 aNormal; 
-layout (location = 3) in vec2 aTexCoord; 
+layout (location = 4) in vec2 aTexCoord; 
  
 out vec3 vLDirVS;
 out vec3 vPosVS;

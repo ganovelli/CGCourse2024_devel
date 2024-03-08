@@ -19,6 +19,8 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define TINYGLTF_IMPLEMENTATION
 #include "..\common\gltf_loader.h"
+#include "..\common\texture.h"
+
 
 /*
 GLM library for math  https://github.com/g-truc/glm
@@ -112,7 +114,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 /* callback function called when a key is pressed */
 void keyboard_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	/* every time any key is presses it switch from controlling trackball tb[0] to tb[1] and viceversa */
-	if (action == GLFW_PRESS && mods & GLFW_MOD_CONTROL==0)
+	if (action == GLFW_PRESS && ((mods & GLFW_MOD_CONTROL)==0))
 		curr_tb = 1 - curr_tb;
 }
 

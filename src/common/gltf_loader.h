@@ -1,12 +1,8 @@
 #pragma once
 #include <tinygltf/tiny_gltf.h>
 
-#ifndef STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-#endif
 
-
+#include "texture.h"
 #include "renderable.h"
 #include "debugging.h"
 
@@ -120,9 +116,10 @@ struct gltf_loader {
 					if (it->first.compare("POSITION") == 0) attr_index = 0;
 					if (it->first.compare("COLOR") == 0)    attr_index = 1;
 					if (it->first.compare("NORMAL") == 0)   attr_index = 2;
+					if (it->first.compare("TANGENT") == 0)   attr_index = 3;
 					if (it->first.find("TEXCOORD_") != std::string::npos) {
 						std::string n = it->first.substr(9, 3);
-						attr_index = 3+ atoi(n.c_str());
+						attr_index = 4+ atoi(n.c_str());
 					}
 
 					if (attr_index != -1) {
@@ -254,7 +251,7 @@ struct gltf_loader {
 			int  channels_in_file;
 			stbi_uc* data = stbi_load_from_memory(v_ptr, bufferview.byteLength, &x, &y, &channels_in_file, image.component);
 
-			stbi_write_png("read_texture.png", x, y, 4, data, 0);
+//			stbi_write_png("read_texture.png", x, y, 4, data, 0);
 
 			id_textures.push_back(0);
 			glGenTextures(1, &id_textures.back());

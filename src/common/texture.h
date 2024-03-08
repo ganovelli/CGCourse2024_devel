@@ -1,10 +1,7 @@
 #pragma once
 #include <glew/include/GL/glew.h>
 #include <string>
-#ifndef  STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-#endif
+
 
 struct texture {
 	texture() { }
