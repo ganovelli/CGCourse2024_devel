@@ -19,32 +19,32 @@ struct game_to_renderable {
 
 	static void to_heightfield(const race& r, renderable& r_hf) {
 		std::vector<unsigned int > buffer_id;
-		const unsigned int& Y = r.s.ter.height_field.size();
+		const unsigned int& Z = r.s.ter.height_field.size();
 		const unsigned int& X = r.s.ter.height_field[0].size();
 
 		terrain ter = r.s.ter;
 
 		std::vector<float>   hf3d;
-		for (int iy = 0; iy < Y; ++iy)
+		for (int iz = 0; iz < Z; ++iz)
 			for (int ix = 0; ix < X; ++ix) {
 				hf3d.push_back(ter.rect_xz[0] + (ix / float(X)) * ter.rect_xz[2]);
-				hf3d.push_back(r.s.ter.height_field[iy][ix]);
-				hf3d.push_back(ter.rect_xz[1] + (iy / float(Y)) * ter.rect_xz[3]);
+				hf3d.push_back(r.s.ter.height_field[ix][iz]);
+				hf3d.push_back(ter.rect_xz[1] + (iz / float(Z)) * ter.rect_xz[3]);
 			}
 
-		for (int iy = 0; iy < Y-1; ++iy)
+		for (int iz = 0; iz < Z-1; ++iz)
 			for (int ix = 0; ix < X-1; ++ix) {
 				
-				buffer_id.push_back((iy * Y) + ix);
-				buffer_id.push_back((iy * Y) + ix + 1);
-				buffer_id.push_back((iy + 1) * Y + ix + 1);
+				buffer_id.push_back((iz * Z) + ix);
+				buffer_id.push_back((iz * Z) + ix + 1);
+				buffer_id.push_back((iz + 1) * Z + ix + 1);
 
-				buffer_id.push_back((iy * Y) + ix);
-				buffer_id.push_back((iy + 1) * Y + ix + 1);
-				buffer_id.push_back((iy + 1) * Y + ix);
+				buffer_id.push_back((iz * Z) + ix);
+				buffer_id.push_back((iz + 1) * Z + ix + 1);
+				buffer_id.push_back((iz + 1) * Z + ix);
 			}
 
-		r_hf.add_vertex_attribute<float>(&hf3d[0], X * Y * 3, 0, 3);
+		r_hf.add_vertex_attribute<float>(&hf3d[0], X * Z * 3, 0, 3);
 		r_hf.add_indices<unsigned int>(&buffer_id[0],  buffer_id.size(), GL_TRIANGLES);
 	}
 

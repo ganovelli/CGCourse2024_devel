@@ -68,17 +68,30 @@ struct terrain {
 
 	// rectangle in xz where the terrain is located (minx,miny,sizex,sizey)
 	glm::vec4 rect_xz;
+
+	// size in pixels of the height field image
 	glm::ivec2 size_pix;
 
 	float y(float x, float z) {
 		
-		int yy = (z - rect_xz[1]) ;
-		int xx = (x - rect_xz[0]) ;
+		float yy = (z - rect_xz[1]) ;
+		float xx = (x - rect_xz[0]) ;
+		float sx = rect_xz[2] / size_pix[0];
 		float sy = rect_xz[3] / size_pix[1];
-		float sx = rect_xz[1] / size_pix[0];
-		// continue add interpolation
 
-		return height_field[(z - rect_xz[1]) / rect_xz[3] * size_pix[1]][(x - rect_xz[0]) / rect_xz[2] * size_pix[0]];
+		float i_min = xx / sx;
+		float j_min = yy / sy;
+
+		float u = i_min - floor(i_min);
+		float v = j_min - floor(j_min);
+
+
+
+		float value = height_field[floor(i_min)	 ][floor(j_min)		] * (1.f - u) * (1.f - v) +
+			height_field[floor(i_min)	 ][floor(j_min) + 1	] * (1.f - u) * v +
+			height_field[floor(i_min) + 1][floor(j_min)		] * u * (1.f - v) +
+			height_field[floor(i_min) + 1][floor(j_min) + 1	] * u * v;
+		return	value;
 	}
 
 };
@@ -120,7 +133,7 @@ struct race {
 	void update() {
 		for (size_t i = 0; i < cars.size();++i) {
 			int ii = ((int)((clock() - clock_start) / 1000.f * 30.f)) % cars[i].p.frames.size();
-			std::cout << ii << std::endl;
+			//std::cout << ii << std::endl;
 			cars[i].frame = cars[i].p.frames[ii];
 		}
 	}

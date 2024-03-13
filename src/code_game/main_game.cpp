@@ -111,6 +111,8 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 
 		printout_opengl_glsl_info();
 
+		renderable fram = shape_maker::frame();
+
 		renderable fr = shape_maker::cube();
 
 		renderable r_track;
@@ -138,7 +140,7 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 		glDisable(GL_CULL_FACE);
 
 		tb[0].reset();
-		tb[0].set_center_radius(glm::vec3(0, 0, 0), 100.f);
+		tb[0].set_center_radius(glm::vec3(0, 0, 0), 10.f);
 		curr_tb = 0;
 
 		proj = glm::perspective(glm::radians(45.f), 1.f, 1.f, 100.f);
@@ -167,6 +169,11 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 			stack.load_identity();
 			stack.push();
 			stack.mult(tb[0].matrix());
+			glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
+			glUniform3f(basic_shader["uColor"], -1.0, 0.6, 0.0);
+			fram.bind();
+//			glDrawElements(fram().mode, fram().count, fram().itype, 0);
+			glDrawArrays(GL_LINES, 0, 6);
 
 			stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(0.01f, 0.01f, 0.01f)));
 
@@ -174,29 +181,22 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 			stack.mult(r.cars[0].frame);
 	 		glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
 
-			glUniform3f(basic_shader["uColor"], 0.0, 0.6, 0.0);
-			fr.bind();
-			glDrawElements(fr().mode, fr().count, fr().itype, 0);
-
+			glUniform3f(basic_shader["uColor"], -1.0, 0.6, 0.0);
+			fram.bind();
+			glDrawArrays(GL_LINES,0,6);
 
 			stack.pop();
 
 			glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
 	
 			r_track.bind();
-			glUniform3f(basic_shader["uColor"], 0.0, 0.2, 0.5);
+			glUniform3f(basic_shader["uColor"], 0.4, 0.4, 0.4);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, r_track.vn);
-			
-			glEnable(GL_POLYGON_OFFSET_FILL);
-			glPolygonOffset(1.0, 1.0);
-			glUniform3f(basic_shader["uColor"], 0.3, 0.2, 0.0);
+
+			glUniform3f(basic_shader["uColor"], 1, 1, 1.0);
 			r_terrain.bind();
 			glDrawArrays(GL_POINTS, 0, 10000);
-	 		glDrawElements(r_terrain().mode, r_terrain().count, r_terrain().itype, 0);		 
-			glDisable(GL_POLYGON_OFFSET_FILL);
-
-
-
+ 
 
 			stack.pop();
 			/* Swap front and back buffers */

@@ -13,18 +13,20 @@ struct game_builder {
 		for(unsigned int i =0; i < r.s.ter.height_field.size();++i)
 			r.s.ter.height_field[i].resize(100);
 
-		for(int iy = 0; iy < 100; ++iy)
+		for(int iz = 0; iz < 100; ++iz)
 			for (int ix = 0; ix < 100; ++ix) 
-				r.s.ter.height_field[iy][ix] = sin(glm::radians(ix*2.f))* cos(glm::radians(iy * 20.f) );
+				r.s.ter.height_field[ix][iz] = 2.0*sin(glm::radians(ix*4.f))* cos(glm::radians(iz * 4.f) );
+//				r.s.ter.height_field[ix][iz] = ix*iz /500.f;
 
 
 		for (size_t i = 0; i < 360; ++i) {
 			glm::mat4 R = glm::rotate(glm::mat4(1.f), glm::radians(float(i)), glm::vec3(0, 1, 0));
-			
 			r.s.t.curbs[0].push_back(( R * glm::vec4(1.f, 0.f, 0.f,0.f))  * rad);
 			r.s.t.curbs[1].push_back(( R * glm::vec4(1.f, 0.f, 0.f, 0.f)) * (rad+2.f));
 			float y = r.s.ter.y(r.s.t.curbs[0].back().x, r.s.t.curbs[0].back().z);
-			r.s.t.curbs[0].back().y = r.s.t.curbs[1].back().y = y;
+			r.s.t.curbs[0].back().y =y;
+			y = r.s.ter.y(r.s.t.curbs[1].back().x, r.s.t.curbs[1].back().z);
+			r.s.t.curbs[1].back().y = y;
 
 		}
 		r.cars.resize(1);
@@ -36,7 +38,7 @@ struct game_builder {
 
 		// 30 frames per second for one minute
 		for (size_t i = 0; i < 1800; ++i) {
-			glm::mat4 R = glm::rotate(glm::mat4(1.f), glm::radians(float(i)/1800*360), glm::vec3(0, 1, 0));
+			glm::mat4 R = glm::translate(glm::rotate(glm::mat4(1.f),glm::radians(float(i) / 1800 * 360), glm::vec3(0, 1, 0)), glm::vec3(1, 0, 0));
 			r.cars[0].p.frames.push_back(R * frame );
 			glm::vec4  & orig = r.cars[0].p.frames.back()[3];
 			
