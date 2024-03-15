@@ -15,7 +15,7 @@ struct game_builder {
 
 		for(int iz = 0; iz < 100; ++iz)
 			for (int ix = 0; ix < 100; ++ix) 
-				r.s.ter.height_field[ix][iz] = 2.0*sin(glm::radians(ix*4.f))* cos(glm::radians(iz * 4.f) );
+				r.s.ter.height_field[ix][iz] = 2.f*sin(glm::radians(ix*4.f))* cos(glm::radians(iz * 4.f) );
 //				r.s.ter.height_field[ix][iz] = ix*iz /500.f;
 
 

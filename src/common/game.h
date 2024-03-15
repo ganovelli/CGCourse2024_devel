@@ -73,7 +73,6 @@ struct terrain {
 	glm::ivec2 size_pix;
 
 	float y(float x, float z) {
-		
 		float yy = (z - rect_xz[1]) ;
 		float xx = (x - rect_xz[0]) ;
 		float sx = rect_xz[2] / size_pix[0];
@@ -82,36 +81,46 @@ struct terrain {
 		float i_min = xx / sx;
 		float j_min = yy / sy;
 
-		float u = i_min - floor(i_min);
-		float v = j_min - floor(j_min);
+		int i = static_cast<int>(floor(i_min));
+		int j = static_cast<int>(floor(j_min));
 
+		float u = i_min - i;
+		float v = j_min - j;
 
-
-		float value = height_field[floor(i_min)	 ][floor(j_min)		] * (1.f - u) * (1.f - v) +
-			height_field[floor(i_min)	 ][floor(j_min) + 1	] * (1.f - u) * v +
-			height_field[floor(i_min) + 1][floor(j_min)		] * u * (1.f - v) +
-			height_field[floor(i_min) + 1][floor(j_min) + 1	] * u * v;
+		float value = height_field[i	 ][j	] * (1.f - u) * (1.f - v) +
+			height_field[i	 ] [j + 1 ] * (1.f - u) * v +
+			height_field[i + 1][j	  ] * u * (1.f - v) +
+			height_field[i + 1][j + 1 ] * u * v;
 		return	value;
 	}
 
 };
 
-struct scene {
-
-	terrain ter;
-	track t;
-
-	glm::vec3 sunlight_direction;
-	std::vector<stick_object> trees;
-	std::vector<stick_object> lamps;
-	std::vector<stick_object> photographers;
-};
+//struct scene {
+//
+//	terrain ter;
+//	track t;
+//
+//	glm::vec3 sunlight_direction;
+//	std::vector<stick_object> trees;
+//	std::vector<stick_object> lamps;
+//	std::vector<stick_object> photographers;
+//};
 
 
 struct race {
 	race():sim_time_ratio(60){}
 
-	scene s;
+	terrain ter;
+	track t;
+
+	box3 bbox;
+	glm::vec3 sunlight_direction;
+	std::vector<stick_object> trees;
+	std::vector<stick_object> lamps;
+	std::vector<stick_object> photographers;
+	std::vector<car> cars;
+
 	int clock_start;
 
 	// simulation sunlight time in milliseconds
@@ -138,7 +147,6 @@ struct race {
 		}
 	}
 
-	std::vector<car> cars;
 };
 
 

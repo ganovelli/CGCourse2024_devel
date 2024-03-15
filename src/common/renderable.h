@@ -91,7 +91,7 @@ struct renderable {
 		unsigned int stride = 0,
 		unsigned int offset = 0) {
 
-		vn = count;
+		vn = count/ num_components;
 
 		glBindVertexArray(vao);
 

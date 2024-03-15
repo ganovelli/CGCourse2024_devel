@@ -7,8 +7,18 @@
 #include "..\common\shaders.h"
 #include "..\common\simple_shapes.h"
 #include "..\common\game.h"
-#include "..\common\game_builder.h"
+//#include "..\common\game_builder.h"
 #include "..\common\game_to_renderable.h"
+
+#define NANOSVG_IMPLEMENTATION	// Expands implementation
+#include "3dparty/nanosvg/src/nanosvg.h"
+#define NANOSVGRAST_IMPLEMENTATION
+#include "3dparty/nanosvg/src/nanosvgrast.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
+#include "..\common\game_loader.h"
 
 #include <iostream>
 #include <algorithm>
@@ -69,9 +79,12 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 
 	int main(int argc, char** argv)
 	{
-		race r;
-		game_builder::default_race(r);
 
+
+		race r;
+		//game_builder::default_race(r);
+		game_loader::load("small_test.svg", "terrain.png",r);
+		//return 0;
 		//r.start();
 		//while (true) {
 		//	r.update();
@@ -160,7 +173,7 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 		while (!glfwWindowShouldClose(window))
 		{
 			/* Render here */
-			glClearColor(0.0, 0.3, 0.5, 1.0);
+			glClearColor(0.f, 0.3f, 0.5f, 1.f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 			check_gl_errors(__LINE__, __FILE__);
@@ -170,18 +183,22 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 			stack.push();
 			stack.mult(tb[0].matrix());
 			glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
-			glUniform3f(basic_shader["uColor"], -1.0, 0.6, 0.0);
+			glUniform3f(basic_shader["uColor"], -1.f, 0.6f, 0.f);
 			fram.bind();
 //			glDrawElements(fram().mode, fram().count, fram().itype, 0);
 			glDrawArrays(GL_LINES, 0, 6);
 
-			stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(0.01f, 0.01f, 0.01f)));
+			float s = 1.f/r.bbox.diagonal();
+			glm::vec3 c = r.bbox.center();
+
+			stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(s)));
+			stack.mult(glm::translate(glm::mat4(1.f), -c));
 
 			stack.push();
 			stack.mult(r.cars[0].frame);
 	 		glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
 
-			glUniform3f(basic_shader["uColor"], -1.0, 0.6, 0.0);
+			glUniform3f(basic_shader["uColor"], -1.f, 0.6f, 0.f);
 			fram.bind();
 			glDrawArrays(GL_LINES,0,6);
 
@@ -190,8 +207,11 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 			glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
 	
 			r_track.bind();
-			glUniform3f(basic_shader["uColor"], 0.4, 0.4, 0.4);
-			glDrawArrays(GL_TRIANGLE_STRIP, 0, r_track.vn);
+			glPointSize(3.0);
+			glUniform3f(basic_shader["uColor"], 1.f, 0.0f, 0.f);
+			//glDrawArrays(GL_TRIANGLE_STRIP, 0, r_track.vn-1000);
+			glDrawArrays(GL_LINE_STRIP, 0,   556);
+			glPointSize(1.0);
 
 			glUniform3f(basic_shader["uColor"], 1, 1, 1.0);
 			r_terrain.bind();
