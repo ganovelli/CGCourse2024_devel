@@ -8,6 +8,11 @@
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
+
 #include "..\common\debugging.h"
 #include "..\common\renderable.h"
 #include "..\common\shaders.h"
@@ -18,7 +23,7 @@
 #include "..\common\frame_buffer_object.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
-#include "..\common\obj_loader.h"
+#include "..\common\gltf_loader.h"
 
 /*
 GLM library for math  https://github.com/g-truc/glm
@@ -29,6 +34,8 @@ and set the path properly.
 #include <glm/ext.hpp>  
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtc/matrix_access.hpp>
+
+int width, height;
 
 /* light direction in world space*/
 glm::vec4 Ldir;
@@ -82,8 +89,8 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
 		tb[curr_tb].mouse_move(proj, view, xpos, ypos);
 	else {
 		if (is_dragging) {
-			d_alpha += (float)(xpos - start_xpos)/1000.f;
-			d_beta += (float)(ypos - start_ypos)/800.f;
+			d_alpha += (float)(xpos - start_xpos)/width;
+			d_beta += (float)(ypos - start_ypos)/height;
 			start_xpos = (float)xpos;
 			start_ypos = (float)ypos;
 			view_rot = glm::rotate(glm::rotate(glm::mat4(1.f), d_alpha, glm::vec3(0,1,0)), d_beta, glm::vec3(1,0,0));
@@ -128,6 +135,22 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	 curr_tb = 1 - curr_tb;
 
 }
+
+/* callback function called when the windows is resized */
+void window_size_callback(GLFWwindow* window, int _width, int _height)
+{
+	width = _width;
+	height = _height;
+	glViewport(0, 0, width, height);
+	proj = glm::perspective(glm::radians(40.f), width / float(height), 2.f, 20.f);
+
+	glUseProgram(texture_shader.program);
+	glUniformMatrix4fv(texture_shader["uProj"], 1, GL_FALSE, &proj[0][0]);
+	glUniformMatrix4fv(texture_shader["uView"], 1, GL_FALSE, &view[0][0]);
+	glUseProgram(0);
+
+}
+
 void print_info() {
 }
 
@@ -172,26 +195,23 @@ void draw_torus() {
 	stack.push();
 	stack.mult(glm::translate(glm::mat4(1.f), glm::vec3(1.0, 0.5, 0.0)));
 	stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(0.2, 0.2, 0.2)));
-	glUniformMatrix4fv(texture_shader["uT"], 1, GL_FALSE, &stack.m()[0][0]);
+	glUniformMatrix4fv(texture_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
 	r_torus.bind();
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_torus.ind);
-	glDrawElements(GL_TRIANGLES, r_torus.in, GL_UNSIGNED_INT, 0);
+	glDrawElements(r_torus().mode, r_torus().count, r_torus().itype, 0);
 	stack.pop();
 }
 
 void draw_plane() {
-	glUniformMatrix4fv(texture_shader["uT"], 1, GL_FALSE, &stack.m()[0][0]);
+	glUniformMatrix4fv(texture_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
 	r_plane.bind();
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_plane.ind);
-	glDrawElements(GL_TRIANGLES, r_plane.in, GL_UNSIGNED_INT, 0);
+	glDrawElements(r_plane().mode, r_plane().count, r_plane().itype, 0);
 }
 
 void draw_large_cube() {
 	r_cube.bind();
 	glUniform1i(texture_shader["uRenderMode"], 2);
-	glUniformMatrix4fv(texture_shader["uT"], 1, GL_FALSE, &glm::scale(glm::mat4(1.f), glm::vec3(40.0, 40.0, 40.0))[0][0]);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_cube.ind);
-	glDrawElements(GL_TRIANGLES, r_cube.in, GL_UNSIGNED_INT, 0);
+	glUniformMatrix4fv(texture_shader["uModel"], 1, GL_FALSE, &glm::scale(glm::mat4(1.f), glm::vec3(40.0, 40.0, 40.0))[0][0]);
+	glDrawElements(r_cube().mode, r_cube().count, r_cube().itype, 0);
 }
 
 /* used when rendering offscreen to create the environment map on-the-fly*/
@@ -206,10 +226,9 @@ void draw_sphere() {
 	stack.push();
 	stack.mult(glm::translate(glm::mat4(1.f), glm::vec3(0.0, 0.5, 0.0)));
 	stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(0.5, 0.5, 0.5)));
-	glUniformMatrix4fv(texture_shader["uT"], 1, GL_FALSE, &stack.m()[0][0]);
+	glUniformMatrix4fv(texture_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
 	r_sphere.bind();
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r_sphere.ind);
-	glDrawElements(GL_TRIANGLES, r_sphere.in, GL_UNSIGNED_INT, 0);
+	glDrawElements(r_sphere().mode, r_sphere().count, r_sphere().itype, 0);
 	stack.pop();
 }
 void draw_scene_target_only() {
@@ -237,8 +256,10 @@ int main(void)
 	if (!glfwInit())
 		return -1;
 
+	width = 1000;
+	height = 800;
 	/* Create a windowed mode window and its OpenGL context */
-	window = glfwCreateWindow(1000, 800, "code_10_shading_gui", NULL, NULL);
+	window = glfwCreateWindow(width, height, "code_12_onthefly_coordinates", NULL, NULL);
 	if (!window)
 	{
 		glfwTerminate();
@@ -252,6 +273,7 @@ int main(void)
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetKeyCallback(window, key_callback);
+	glfwSetWindowSizeCallback(window, window_size_callback);
 
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
@@ -269,38 +291,16 @@ int main(void)
 	/* load the shaders */
 	std::string shaders_path = "../../src/code_12_onthefly_coordinates/shaders/";
 	texture_shader.create_program((shaders_path+"texture.vert").c_str(), (shaders_path+"texture.frag").c_str());
-	texture_shader.bind("uP");
-	texture_shader.bind("uV");
-	texture_shader.bind("uLPView");
-	texture_shader.bind("uLPProj");
-	texture_shader.bind("uT");
-	texture_shader.bind("uLdir");
-	texture_shader.bind("uRenderMode");
-	texture_shader.bind("uDiffuseColor");
-	texture_shader.bind("uTextureImage");
-	texture_shader.bind("uBumpmapImage");
-	texture_shader.bind("uNormalmapImage");
-	texture_shader.bind("uSkybox");
-	texture_shader.bind("uReflectionMap");
 
-	check_shader(texture_shader.vs);
-	check_shader(texture_shader.fs);
-	validate_shader_program(texture_shader.pr);
 
 	flat_shader.create_program((shaders_path + "flat.vert").c_str(), (shaders_path + "flat.frag").c_str());
-	flat_shader.bind("uP");
-	flat_shader.bind("uV");
-	flat_shader.bind("uT");
-	flat_shader.bind("uColor");
-	check_shader(flat_shader.vs);
-	check_shader(flat_shader.fs);
-	validate_shader_program(flat_shader.pr);
+
 
 	/* Set the uT matrix to Identity */
-	glUseProgram(texture_shader.pr);
-	glUniformMatrix4fv(texture_shader["uT"], 1, GL_FALSE, &glm::mat4(1.0)[0][0]);
-	glUseProgram(flat_shader.pr);
-	glUniformMatrix4fv(flat_shader["uT"], 1, GL_FALSE, &glm::mat4(1.0)[0][0]);
+	glUseProgram(texture_shader.program);
+	glUniformMatrix4fv(texture_shader["uModel"], 1, GL_FALSE, &glm::mat4(1.0)[0][0]);
+	glUseProgram(flat_shader.program);
+	glUniformMatrix4fv(flat_shader["uModel"], 1, GL_FALSE, &glm::mat4(1.0)[0][0]);
 	glUseProgram(0);
 
 	fbo.create(2048, 2048);
@@ -327,7 +327,7 @@ int main(void)
 	r_cube = shape_maker::cube();
 
 	/* create a sphere */
-	r_sphere = shape_maker::sphere();
+	r_sphere = shape_maker::sphere(3);
 
 	/* initial light direction */
 	Ldir = glm::vec4(0.0, 1.0, 0.0, 0.0);
@@ -340,21 +340,21 @@ int main(void)
  	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
 	/* Transformation to setup the point of view on the scene */
-	proj = glm::frustum(-1.f, 1.f, -0.8f, 0.8f, 2.f,100.f);
+	proj = glm::perspective(glm::radians(40.f), width / float(height), 2.f, 20.f);
 	view = glm::lookAt(glm::vec3(0, 3, 4.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
-	glUseProgram(texture_shader.pr);
-	glUniformMatrix4fv(texture_shader["uP"], 1, GL_FALSE, &proj[0][0]);
-	glUniformMatrix4fv(texture_shader["uV"], 1, GL_FALSE, &view[0][0]);
+	glUseProgram(texture_shader.program);
+	glUniformMatrix4fv(texture_shader["uProj"], 1, GL_FALSE, &proj[0][0]);
+	glUniformMatrix4fv(texture_shader["uView"], 1, GL_FALSE, &view[0][0]);
 	glUniformMatrix4fv(texture_shader["uLPView"], 1, GL_FALSE, &Lproj.view[0][0]);
 	glUniformMatrix4fv(texture_shader["uLPProj"], 1, GL_FALSE, &Lproj.proj[0][0]);
 	glUseProgram(0);
 	check_gl_errors(__LINE__, __FILE__, true);
 
 
-	glUseProgram(flat_shader.pr);
-	glUniformMatrix4fv(flat_shader["uP"], 1, GL_FALSE, &proj[0][0]);
-	glUniformMatrix4fv(flat_shader["uV"], 1, GL_FALSE, &view[0][0]);
+	glUseProgram(flat_shader.program);
+	glUniformMatrix4fv(flat_shader["uProj"], 1, GL_FALSE, &proj[0][0]);
+	glUniformMatrix4fv(flat_shader["uView"], 1, GL_FALSE, &view[0][0]);
 	glUniform3f(flat_shader["uColor"], 1.0, 1.0, 1.0);
 	glUseProgram(0);
 	glEnable(GL_DEPTH_TEST);
@@ -370,7 +370,7 @@ int main(void)
 	curr_tb = 0;
 
 	/* define the viewport  */
-	glViewport(0, 0, 1000, 800);
+	glViewport(0, 0, width, height);
 
 	load_textures();
 	
@@ -403,12 +403,12 @@ int main(void)
 		stack.mult(tb[0].matrix());
 
 		stack.push();
-		glUseProgram(texture_shader.pr);
-		glUniformMatrix4fv(texture_shader["uV"], 1, GL_FALSE, &curr_view[0][0]);
-		glUniformMatrix4fv(texture_shader["uT"], 1, GL_FALSE, &stack.m()[0][0]);
+		glUseProgram(texture_shader.program);
+		glUniformMatrix4fv(texture_shader["uView"], 1, GL_FALSE, &curr_view[0][0]);
+		glUniformMatrix4fv(texture_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
 		glUniform4fv(texture_shader["uLdir"], 1, &curr_Ldir[0]);
 		glUniform1i(texture_shader["uRenderMode"], selected);
-		glUniform1i(texture_shader["uTextureImage"], 0);
+		glUniform1i(texture_shader["uColorImage"], 0);
 		glUniform1i(texture_shader["uSkybox"], 1);
 		glUniform1i(texture_shader["uReflectionMap"], 2);
 		
@@ -423,7 +423,7 @@ int main(void)
 
 			glm::mat4 projsB;
 			projsB = glm::perspective(3.14f/2.f, 1.f, 0.1f, 100.0f);
-			glUniformMatrix4fv(texture_shader["uP"], 1, GL_FALSE, &projsB[0][0]);
+			glUniformMatrix4fv(texture_shader["uProj"], 1, GL_FALSE, &projsB[0][0]);
 
 			glBindFramebuffer(GL_FRAMEBUFFER, fbo.id_fbo);
 
@@ -436,7 +436,7 @@ int main(void)
 			for (unsigned int i = 0; i < 6; ++i) {
 				/* set to which face of the cubemap the rendering on this direction will be written */
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, reflection_map.id, 0);
-				glUniformMatrix4fv(texture_shader["uV"], 1, GL_FALSE, &glm::lookAt(eye, eye + tar[i], up[i])[0][0]);
+				glUniformMatrix4fv(texture_shader["uView"], 1, GL_FALSE, &glm::lookAt(eye, eye + tar[i], up[i])[0][0]);
 
 				/* the viewport is set to the same size as the faces of the cubemap*/
 				glViewport(0, 0, 2048, 2048);
@@ -447,12 +447,12 @@ int main(void)
 		}
 		/* --------------------------------------------------------*/
  
-		glViewport(0, 0, 1000, 800);
+		glViewport(0, 0, width, height);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-		glUniformMatrix4fv(texture_shader["uV"], 1, GL_FALSE, &curr_view[0][0]);
-		glUniformMatrix4fv(texture_shader["uP"], 1, GL_FALSE, &proj[0][0]);
+		glUniformMatrix4fv(texture_shader["uView"], 1, GL_FALSE, &curr_view[0][0]);
+		glUniformMatrix4fv(texture_shader["uProj"], 1, GL_FALSE, &proj[0][0]);
 
 		if (selected == 5) {
 			draw_scene_no_target();
@@ -464,9 +464,9 @@ int main(void)
 		stack.pop();
 
 		// render the reference frame
-		glUseProgram(flat_shader.pr);
-		glUniformMatrix4fv(flat_shader["uV"], 1, GL_FALSE, &curr_view[0][0]);
-		glUniformMatrix4fv(flat_shader["uT"], 1, GL_FALSE, &stack.m()[0][0]);
+		glUseProgram(flat_shader.program);
+		glUniformMatrix4fv(flat_shader["uView"], 1, GL_FALSE, &curr_view[0][0]);
+		glUniformMatrix4fv(flat_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
 		glUniform3f(flat_shader["uColor"], -1.0, 1.0, 1.0);
 
 		r_frame.bind();
@@ -480,8 +480,8 @@ int main(void)
 		stack.push();
 		stack.mult(tb[1].matrix());
 		 
-		glUseProgram(flat_shader.pr);
-		glUniformMatrix4fv(flat_shader["uT"], 1, GL_FALSE, &stack.m()[0][0]);
+		glUseProgram(flat_shader.program);
+		glUniformMatrix4fv(flat_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
 		glUniform3f(flat_shader["uColor"], 1.0,1.0,1.0);
 		r_line.bind();
 		glDrawArrays(GL_LINES, 0, 2);
