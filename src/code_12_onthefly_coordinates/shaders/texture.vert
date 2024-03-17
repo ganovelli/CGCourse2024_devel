@@ -9,9 +9,9 @@ out vec3 vLdirVS;
 out vec3 vNormalVS;
 out vec3 vNormalWS;
 
-uniform mat4 uP;
-uniform mat4 uV;
-uniform mat4 uT;
+uniform mat4 uProj;
+uniform mat4 uView;
+uniform mat4 uModel;
 uniform vec4 uLdir;
 
 uniform mat4 uLPView;
@@ -22,11 +22,11 @@ uniform int uRenderMode;
 
 void main(void) 
 { 
-    gl_Position = uP*uV*uT*vec4(aPosition, 1.0); 
+    gl_Position = uProj*uView*uModel*vec4(aPosition, 1.0); 
 	
-	vLdirVS   = (uV*uLdir).xyz;
-	vNormalVS = normalize((uV*uT*vec4(aNormal,0.0)).xyz);
-	vNormalWS = normalize(( uT*vec4(aNormal,0.0)).xyz);
-	vProjTexCoord  = uLPProj* uLPView*uT*vec4(aPosition, 1.0);
-	vSkyboxTexCoord =  inverse(uV)*(uV*uT*vec4(aPosition, 1.0)-vec4(0,0,0,1.0));
+	vLdirVS   = (uView*uLdir).xyz;
+	vNormalVS = normalize((uView*uModel*vec4(aNormal,0.0)).xyz);
+	vNormalWS = normalize(( uModel*vec4(aNormal,0.0)).xyz);
+	vProjTexCoord  = uLPProj* uLPView*uModel*vec4(aPosition, 1.0);
+	vSkyboxTexCoord =  inverse(uView)*(uView*uModel*vec4(aPosition, 1.0)-vec4(0,0,0,1.0));
 }
