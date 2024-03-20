@@ -23,9 +23,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:document-units="mm"
      showgrid="true"
-     inkscape:zoom="11.313709"
-     inkscape:cx="30.714951"
-     inkscape:cy="46.359688"
+     inkscape:zoom="4"
+     inkscape:cx="59.125"
+     inkscape:cy="59.875"
      inkscape:window-width="1920"
      inkscape:window-height="1009"
      inkscape:window-x="-8"
@@ -183,8 +183,8 @@
        id="tree"
        width="0.62838542"
        height="0.72760415"
-       x="8.4666662"
-       y="15.213542" />
+       x="8.5602102"
+       y="15.634492" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-7"
@@ -246,8 +246,8 @@
        id="tree-5"
        width="0.62838542"
        height="0.72760415"
-       x="11.459765"
-       y="12.832292" />
+       x="11.955859"
+       y="13.096875" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-21"
@@ -267,85 +267,92 @@
        id="tree-68"
        width="0.62838542"
        height="0.72760415"
-       x="10.302214"
-       y="14.519011" />
+       x="10.395758"
+       y="14.93996" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-57"
        width="0.62838542"
        height="0.72760415"
-       x="11.525911"
-       y="14.750521" />
+       x="11.151733"
+       y="15.545648" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-48"
        width="0.62838542"
        height="0.72760415"
-       x="12.584245"
-       y="14.717448" />
+       x="12.210067"
+       y="15.325487" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-70"
        width="0.62838542"
        height="0.72760415"
-       x="14.138672"
-       y="14.750521" />
+       x="14.232216"
+       y="15.171471" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-66"
        width="0.62838542"
        height="0.72760415"
-       x="12.551172"
-       y="15.941146" />
+       x="12.644716"
+       y="16.362095" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-9"
        width="0.62838542"
        height="0.72760415"
-       x="10.36836"
-       y="16.007292" />
+       x="10.461904"
+       y="16.428242" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-16"
        width="0.62838542"
        height="0.72760415"
-       x="9.2108068"
-       y="16.437239" />
+       x="9.3043509"
+       y="16.858189" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-12"
        width="0.62838542"
        height="0.72760415"
-       x="10.83138"
-       y="17.4625" />
+       x="10.924924"
+       y="17.88345" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-83"
        width="0.62838542"
        height="0.72760415"
-       x="12.914974"
-       y="17.627865" />
+       x="13.008518"
+       y="18.048815" />
+    <rect
+       style="fill:#0080ff;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;fill-opacity:1"
+       id="cameraman"
+       width="0.62838542"
+       height="0.72760415"
+       x="25.246798"
+       y="18.976488" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-73"
        width="0.62838542"
        height="0.72760415"
-       x="14.270964"
-       y="17.098698" />
+       x="14.364508"
+       y="17.519648" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-28"
        width="0.62838542"
        height="0.72760415"
-       x="15.59388"
-       y="15.709636" />
+       x="15.687424"
+       y="16.130585" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-02"
        width="0.62838542"
        height="0.72760415"
-       x="16.056902"
-       y="14.155209" />
+       x="16.150446"
+       y="14.576159" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-25"
@@ -365,8 +372,8 @@
        id="tree-39"
        width="0.62838542"
        height="0.72760415"
-       x="14.733984"
-       y="10.484115" />
+       x="14.502474"
+       y="10.947136" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-22"
@@ -421,15 +428,15 @@
        id="tree-29"
        width="0.62838542"
        height="0.72760415"
-       x="17.313671"
-       y="14.915885" />
+       x="17.407215"
+       y="15.336835" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-10"
        width="0.62838542"
        height="0.72760415"
-       x="16.519922"
-       y="16.668751" />
+       x="16.613466"
+       y="17.089701" />
     <path
        style="fill:none;stroke:#ff0000;stroke-width:0.0529167;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="M 2.1166666,13.377995 C 5.6427392,11.970014 6.9193743,10.83206 8.2186197,8.5989582 9.1994707,6.9131029 7.7035958,4.1945895 9.0785155,2.8111979 10.576609,1.3038732 13.286404,1.4644036 15.378906,1.8355469 c 1.77337,0.3145394 3.745568,1.1041849 4.729427,2.6127603 1.176058,1.8032798 0.06518,4.3419523 0.578776,6.4326818 0.550678,2.241681 2.645833,6.39961 2.645833,6.39961 0,0 1.315593,1.926773 0.992188,2.89388 -0.823289,2.461952 -3.872065,4.05371 -6.449219,4.365625 -2.86556,0.346821 -5.889334,0.266323 -8.6816403,-0.51263 C 7.6457728,23.595498 6.1419865,22.83225 4.9278645,21.778515 3.8128662,20.81081 3.0400101,19.485437 2.3316406,18.190104 1.8996942,17.400242 1.3435872,15.676562 1.3435872,15.676562 1.0530719,14.37883 1.3659404,13.677764 2.1166666,13.377995 Z"
@@ -457,8 +464,8 @@
        id="tree-54-9"
        width="0.62838542"
        height="0.72760415"
-       x="15.167395"
-       y="9.926075" />
+       x="14.605155"
+       y="9.8930025" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-54-3"
@@ -478,29 +485,29 @@
        id="tree-54-5"
        width="0.62838542"
        height="0.72760415"
-       x="15.214167"
-       y="13.925095" />
+       x="15.307711"
+       y="14.346045" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-54-98"
        width="0.62838542"
        height="0.72760415"
-       x="11.940115"
-       y="14.088798" />
+       x="11.565937"
+       y="14.696836" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-54-94"
        width="0.62838542"
        height="0.72760415"
-       x="12.945717"
-       y="14.13557" />
+       x="13.039261"
+       y="14.55652" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-54-51"
        width="0.62838542"
        height="0.72760415"
-       x="11.753026"
-       y="13.995254" />
+       x="11.182761"
+       y="13.991929" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-54-4"
@@ -534,22 +541,22 @@
        id="tree-54-25"
        width="0.62838542"
        height="0.72760415"
-       x="9.1103992"
-       y="13.948482" />
+       x="9.2039433"
+       y="14.369431" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-54-6"
        width="0.62838542"
        height="0.72760415"
-       x="11.869957"
-       y="16.848356" />
+       x="11.963501"
+       y="17.269306" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-54-1"
        width="0.62838542"
        height="0.72760415"
-       x="14.18518"
-       y="16.029842" />
+       x="14.278724"
+       y="16.450792" />
     <rect
        style="fill:#008000;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="tree-54-744"
@@ -564,5 +571,26 @@
        height="0.72760415"
        x="16.757648"
        y="10.534113" />
+    <rect
+       style="fill:#0080ff;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;fill-opacity:1"
+       id="cameraman1"
+       width="0.62838542"
+       height="0.72760415"
+       x="21.34132"
+       y="4.5472755" />
+    <rect
+       style="fill:#0080ff;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="cameraman1-0"
+       width="0.62838542"
+       height="0.72760415"
+       x="7.099196"
+       y="4.6174335" />
+    <rect
+       style="fill:#0080ff;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="cameraman1-0-5"
+       width="0.62838542"
+       height="0.72760415"
+       x="2.1993492"
+       y="20.273697" />
   </g>
 </svg>

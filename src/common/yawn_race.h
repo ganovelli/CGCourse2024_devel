@@ -8,6 +8,7 @@
 #include "box3.h"
 
 struct game_loader;
+class race;
 
 struct point_object {
 	point_object():pos(0.f) {}
@@ -69,8 +70,9 @@ private:
 };
 
 
-struct terrain {
-
+struct  terrain {
+	 
+ 
 	// terrain specified as an height field
 	std::vector<unsigned char> height_field;
 
@@ -80,14 +82,18 @@ struct terrain {
 	// size in pixels of the height field image
 	glm::ivec2 size_pix;
 
+
 	float  hf(const unsigned int i, const unsigned int j) const {
 		return height_field[ (size_pix[0]-1-i) * size_pix[0] + j]/50.f;
 	}
 
+ 
+	// given a 3d point, return its orthogonal projectoin into the terrain (that is, along the y direction)
 	glm::vec3  p(glm::vec3 p_in) {
 		return glm::vec3(p_in.x, y(p_in.x, p_in.z), p_in.z);
 	}
 
+	// given the x and z coordinates, returns the height of the terrain
 	float y(float x, float z) {
 		float yy = (z - rect_xz[1]) ;
 		float xx = (x - rect_xz[0]) ;
@@ -119,13 +125,14 @@ public:
 	race():sim_time_ratio(60){}
 
 	terrain ter;
+	
 	track t;
 
 	box3 bbox;
 	glm::vec3 sunlight_direction;
 	std::vector<stick_object> trees;
 	std::vector<stick_object> lamps;
-	std::vector<stick_object> photographers;
+	std::vector<stick_object> cameramen;
 	std::vector<car> cars;
 
 private:
@@ -162,9 +169,14 @@ public:
 		c.box.add(glm::vec3( 1, 0,    2));
 		c.id_path = id_path;
 		 
-		c.delta_i = ((delta == -1) ? rand() / float(RAND_MAX):delta) * (carpaths[id_path].frames.size() - 2);
+		c.delta_i = (int) floor(((delta == -1) ? rand() / float(RAND_MAX):delta) * (carpaths[id_path].frames.size() - 2));
 
 		cars.push_back(c);
+	}
+
+	void add_car(float delta = -1) {
+		int id = (int) floor((rand() / float(RAND_MAX)) *  carpaths.size());
+		add_car(id,delta);
 	}
 
 	void update() {

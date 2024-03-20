@@ -16,12 +16,12 @@
 #include "..\common\renderable.h"
 #include "..\common\shaders.h"
 #include "..\common\simple_shapes.h"
-#include "..\common\game.h"
-#include "..\common\game_to_renderable.h"
+#include "..\common\yawn_race.h"
+#include "..\common\yawn_race_to_renderable.h"
 
 
 
-#include "..\common\game_loader.h"
+#include "..\common\yawn_race_loader.h"
 
 #include <iostream>
 #include <algorithm>
@@ -82,7 +82,12 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 	int main(int argc, char** argv)
 	{
 		race r;
+		
 		game_loader::load("small_test.svg", "terrain_256.png",r);
+		
+		//add 10 cars
+		for (int i = 0; i < 10; ++i)		
+			r.add_car();
 
 		GLFWwindow* window;
 
@@ -90,8 +95,8 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 		if (!glfwInit())
 			return -1;
 
-			/* Create a windowed mode window and its OpenGL context */
-		window = glfwCreateWindow(800, 800, "game", NULL, NULL);
+		/* Create a windowed mode window and its OpenGL context */
+		window = glfwCreateWindow(800, 800, "yawn race", NULL, NULL);
 		if (!window)
 		{
 			glfwTerminate();
@@ -138,24 +143,17 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 
 		/* use the program shader "program_shader" */
 		glUseProgram(basic_shader.program);
-
-
-		/* load the shaders */
 		
 		/* define the viewport  */
 		glViewport(0, 0, 800, 800);
 
-		/* avoid rendering back faces */
-		// uncomment to see the plane disappear when rotating it
-		glDisable(GL_CULL_FACE);
-
 		tb[0].reset();
-		tb[0].set_center_radius(glm::vec3(0, 0, 0), 10.f);
+		tb[0].set_center_radius(glm::vec3(0, 0, 0), 1.f);
 		curr_tb = 0;
 
-		proj = glm::perspective(glm::radians(45.f), 1.f, 1.f, 100.f);
+		proj = glm::perspective(glm::radians(45.f), 1.f, 1.f, 10.f);
 
-		view = glm::lookAt(glm::vec3(0, 30.f, 0), glm::vec3(0.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
+		view = glm::lookAt(glm::vec3(0, 1.f, 1.5), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.0, 1.f, 0.f));
 		glUniformMatrix4fv(basic_shader["uProj"], 1, GL_FALSE, &proj[0][0]);
 		glUniformMatrix4fv(basic_shader["uView"], 1, GL_FALSE, &view[0][0]);
 
@@ -213,12 +211,18 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 				glUniform3f(basic_shader["uColor"], -1.f, 0.6f, 0.f);
 				fram.bind();
 				glDrawArrays(GL_LINES, 0, 6);
-				//r_cube.bind();
-				//glUniform3f(basic_shader["uColor"], 11.f, 0.6f, 0.f);
-				//glDrawElements(r_cube().mode, r_cube().count, r_cube().itype, 0);
 				stack.pop();
 			}
 
+			r_cube.bind();
+			for (unsigned int ic = 0; ic < r.cameramen.size(); ++ic) {
+				stack.push();
+				stack.mult(glm::translate(glm::mat4(1.f), r.cameramen[ic].pos));
+				glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
+				glUniform3f(basic_shader["uColor"], 0, 0.3f, 8.f);
+				glDrawElements(r_cube().mode, r_cube().count, r_cube().itype, 0);
+				stack.pop();
+			}
 			glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
 	
 			r_track.bind();

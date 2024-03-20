@@ -1,5 +1,5 @@
 #pragma once
-#include "game.h"
+#include "yawn_race.h"
 #include "path.h"
 
 struct game_loader {
@@ -55,6 +55,9 @@ struct game_loader {
 			if (std::string(shape->id).find("lamp") != std::string::npos) 
 				push_stick_object(shape->paths, 2.f, r.lamps);
 			else
+			if (std::string(shape->id).find("cameraman") != std::string::npos)
+				push_stick_object(shape->paths, 1.f, r.cameramen);
+			else
 				if (std::string(shape->id).find("track") != std::string::npos) {
 					int ip = 0;
 					std::vector<glm::vec3> samples_pos, samples_tan;
@@ -107,10 +110,6 @@ struct game_loader {
 					}
 		}
 
-		for (int i = 0; i < 10; ++i) {
-			int id = floor((rand() / float(RAND_MAX)) * r.carpaths.size());
-			r.add_car(id);
-		}		// Delete
 		nsvgDelete(image);
 		return 1;
 	}
