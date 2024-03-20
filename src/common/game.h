@@ -7,6 +7,7 @@
 #include <glm/gtx/string_cast.hpp>
 #include "box3.h"
 
+struct game_loader;
 
 struct point_object {
 	point_object():pos(0.f) {}
@@ -48,29 +49,44 @@ struct path {
 	int T; // how many milliseconds for a lap to complete
 };
 
+class race;
+
 struct car {
+	friend race;
 
 	// local frame of the car. the car front is on -z halfspace
 	glm::mat4 frame;
 
-	// box is the bounding box of the car, expressed in "frame"
+	// box is the bounding box of the car, expressed in "frame" coordinates
 	box3 box;
 	 
-	// the path followed by the car
-	path p;
+private:
+	// on which path is the car moving
+	int id_path;
+
+	// starting point
+	int delta_i;
 };
 
 
 struct terrain {
 
 	// terrain specified as an height field
-	std::vector< std::vector<float> > height_field;
+	std::vector<unsigned char> height_field;
 
 	// rectangle in xz where the terrain is located (minx,miny,sizex,sizey)
 	glm::vec4 rect_xz;
 
 	// size in pixels of the height field image
 	glm::ivec2 size_pix;
+
+	float  hf(const unsigned int i, const unsigned int j) const {
+		return height_field[ (size_pix[0]-1-i) * size_pix[0] + j]/50.f;
+	}
+
+	glm::vec3  p(glm::vec3 p_in) {
+		return glm::vec3(p_in.x, y(p_in.x, p_in.z), p_in.z);
+	}
 
 	float y(float x, float z) {
 		float yy = (z - rect_xz[1]) ;
@@ -87,28 +103,19 @@ struct terrain {
 		float u = i_min - i;
 		float v = j_min - j;
 
-		float value = height_field[i	 ][j	] * (1.f - u) * (1.f - v) +
-			height_field[i	 ] [j + 1 ] * (1.f - u) * v +
-			height_field[i + 1][j	  ] * u * (1.f - v) +
-			height_field[i + 1][j + 1 ] * u * v;
+		float value =	hf(i	, j		) * (1.f - u) * (1.f - v) +
+						hf(i	, j + 1 ) * (1.f - u) * v +
+						hf(i + 1, j		) * u * (1.f - v) +
+						hf(i + 1, j + 1 ) * u * v;
 		return	value;
 	}
 
 };
 
-//struct scene {
-//
-//	terrain ter;
-//	track t;
-//
-//	glm::vec3 sunlight_direction;
-//	std::vector<stick_object> trees;
-//	std::vector<stick_object> lamps;
-//	std::vector<stick_object> photographers;
-//};
 
-
-struct race {
+class race {
+	friend game_loader;
+public:
 	race():sim_time_ratio(60){}
 
 	terrain ter;
@@ -121,6 +128,10 @@ struct race {
 	std::vector<stick_object> photographers;
 	std::vector<car> cars;
 
+private:
+
+	std::vector<path> carpaths;
+
 	int clock_start;
 
 	// simulation sunlight time in milliseconds
@@ -128,6 +139,8 @@ struct race {
 
 	// how long a real second in simulated sunlight time
 	int sim_time_ratio; 
+
+public:
 
 	void start( int h = -1, int m = -1, int s = -1, int _sim_time_ratio = 60) {
 		clock_start = clock();
@@ -139,12 +152,33 @@ struct race {
 			sim_time_ratio = _sim_time_ratio;
 	}
 
-	void update() {
-		for (size_t i = 0; i < cars.size();++i) {
-			int ii = ((int)((clock() - clock_start) / 1000.f * 30.f)) % cars[i].p.frames.size();
-			//std::cout << ii << std::endl;
-			cars[i].frame = cars[i].p.frames[ii];
+	void add_car(int id_path, float delta = -1) {
+		if (id_path >= carpaths.size()) {
+			std::cout << "car path > " << carpaths.size() - 1 << "\n";
+			exit(-1);
 		}
+		car c; 
+		c.box.add(glm::vec3(-1, 1.5, -2));
+		c.box.add(glm::vec3( 1, 0,    2));
+		c.id_path = id_path;
+		 
+		c.delta_i = ((delta == -1) ? rand() / float(RAND_MAX):delta) * (carpaths[id_path].frames.size() - 2);
+
+		cars.push_back(c);
+	}
+
+	void update() {
+		int cs = clock() - clock_start;
+		for (size_t i = 0; i < cars.size();++i) {
+			int ii = ((int)((cs) / 1000.f * 30.f)+ cars[i].delta_i) % carpaths[cars[i].id_path].frames.size();
+			//std::cout << ii << std::endl;
+			cars[i].frame = carpaths[cars[i].id_path].frames[ii];
+		}
+		int day_ms = 3600000 * 24;
+		 
+		int daytime = (  this->sim_time + cs * sim_time_ratio) % (day_ms);
+		glm::mat4 R = glm::rotate(glm::mat4(1.f), glm::radians(360.f * daytime / float(day_ms)), glm::vec3(1, 0, 0));
+		sunlight_direction = R * glm::vec4(0.f, -1.f, 0.f,0.f);
 	}
 
 };
