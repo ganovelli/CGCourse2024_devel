@@ -5,7 +5,7 @@
 #include <glm/glm.hpp>  
 #include <glm/ext.hpp>  
 #include <glm/gtx/string_cast.hpp>
-#include "box3.h"
+#include "..\box3.h"
 
 struct game_loader;
 class race;

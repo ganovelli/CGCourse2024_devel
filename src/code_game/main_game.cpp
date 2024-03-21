@@ -16,12 +16,12 @@
 #include "..\common\renderable.h"
 #include "..\common\shaders.h"
 #include "..\common\simple_shapes.h"
-#include "..\common\yawn_race.h"
-#include "..\common\yawn_race_to_renderable.h"
+#include "..\common\carousel\carousel.h"
+#include "..\common\carousel\carousel_to_renderable.h"
 
 
 
-#include "..\common\yawn_race_loader.h"
+#include "..\common\carousel\carousel_loader.h"
 
 #include <iostream>
 #include <algorithm>
@@ -96,7 +96,7 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 			return -1;
 
 		/* Create a windowed mode window and its OpenGL context */
-		window = glfwCreateWindow(800, 800, "yawn race", NULL, NULL);
+		window = glfwCreateWindow(800, 800, "CarOusel", NULL, NULL);
 		if (!window)
 		{
 			glfwTerminate();

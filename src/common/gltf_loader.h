@@ -136,9 +136,9 @@ struct gltf_loader {
 						size_t bufferviewOffset = model.bufferViews[accessor.bufferView].byteOffset;
 
 						switch (accessor.componentType) {
-							case TINYGLTF_PARAMETER_TYPE_FLOAT: r.add_vertex_attribute<float>((float*)&model.buffers[buffer].data[bufferviewOffset + accessor.byteOffset], n_comp * n_vert, attr_index, n_comp);break;
-							case TINYGLTF_PARAMETER_TYPE_BYTE: r.add_vertex_attribute<char>((char*)&model.buffers[buffer].data[bufferviewOffset + accessor.byteOffset], n_comp * n_vert, attr_index, n_comp);break;
-							case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: r.add_vertex_attribute<unsigned char>((unsigned char*)&model.buffers[buffer].data[bufferviewOffset + accessor.byteOffset], n_comp * n_vert, attr_index, n_comp);break;
+							case TINYGLTF_PARAMETER_TYPE_FLOAT: r.add_vertex_attribute<float>((float*)&model.buffers[buffer].data[bufferviewOffset + accessor.byteOffset], n_comp * n_vert, attr_index, n_comp, byteStride);break;
+							case TINYGLTF_PARAMETER_TYPE_BYTE: r.add_vertex_attribute<char>((char*)&model.buffers[buffer].data[bufferviewOffset + accessor.byteOffset], n_comp * n_vert, attr_index, n_comp, byteStride);break;
+							case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: r.add_vertex_attribute<unsigned char>((unsigned char*)&model.buffers[buffer].data[bufferviewOffset + accessor.byteOffset], n_comp * n_vert, attr_index, n_comp, byteStride);break;
 						}
 						// if the are the position compute the object bounding box
 						if (attr_index == 0) {
@@ -180,7 +180,6 @@ struct gltf_loader {
 					indexAccessor.ByteStride(model.bufferViews[indexAccessor.bufferView]);
 				assert(byteStride != -1);
 
-				// one long texture, just a stub implementation
 				int buffer = model.bufferViews[indexAccessor.bufferView].buffer;
 				size_t bufferviewOffset = model.bufferViews[indexAccessor.bufferView].byteOffset;
 
@@ -225,7 +224,7 @@ struct gltf_loader {
 		check_gl_errors(__LINE__, __FILE__);
 
 
-		// load texture
+		// load textures
 		for (unsigned int it = 0; it < model.textures.size(); ++it) {
 			tinygltf::Texture& texture = model.textures[it];
 			tinygltf::Sampler sampler = model.samplers[model.textures[it].sampler];
@@ -251,7 +250,7 @@ struct gltf_loader {
 			int  channels_in_file;
 			stbi_uc* data = stbi_load_from_memory(v_ptr, bufferview.byteLength, &x, &y, &channels_in_file, image.component);
 
-//			stbi_write_png("read_texture.png", x, y, 4, data, 0);
+//			debug stbi_write_png("read_texture.png", x, y, 4, data, 0);
 
 			id_textures.push_back(0);
 			glGenTextures(1, &id_textures.back());
@@ -280,7 +279,7 @@ struct gltf_loader {
 		glm::mat4 currT(1.f);
 		visit_node(currT, 0);
 
-		
+		// compute the bounding box of the scene
 		for (unsigned int ir = 0; ir < rs.size(); ++ir)
 			for (unsigned int ic = 0; ic < 8; ++ic)
 				bbox.add(rs[ir].transform*glm::vec4(rs[ir].bbox.p(ic),1.0));

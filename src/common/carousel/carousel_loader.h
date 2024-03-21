@@ -1,6 +1,6 @@
 #pragma once
-#include "yawn_race.h"
-#include "path.h"
+#include "carousel.h"
+#include "..\path.h"
 
 struct game_loader {
 	game_loader() {}
@@ -24,10 +24,8 @@ struct game_loader {
 
 	static int load(const char * svgFile, const char* terrain_image,race & r) {
 		game_loader::r() = &r;
-		r.ter.rect_xz = glm::vec4(-1,-1,101,101);
 
 		int sx, sy,comp;
-
 		unsigned char* data = stbi_load( terrain_image, &sx, &sy, &comp, 1);
 
 		r.ter.size_pix[0] = sx;
@@ -45,6 +43,7 @@ struct game_loader {
 		
 		r.bbox.add(glm::vec3(0.f, 0.f, 0.f));
 		r.bbox.add(glm::vec3(image->width, 0.f, image->height));
+		r.ter.rect_xz = glm::vec4(0, 0, image->width, image->height);
 
 		for (NSVGshape* shape = image->shapes; shape != NULL; shape = shape->next) {
 			printf("id %s\n", shape->id);
