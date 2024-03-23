@@ -14,6 +14,15 @@ struct game_loader {
 		vso.push_back(so);
 	}
 
+	static void push_cameraman(NSVGpath* npath, float rd, std::vector<cameraman>& vc) {
+		cameraman  so;
+		so.frame = glm::mat4(1.f);
+		so.frame[3] = glm::vec4(npath->pts[0], r()->ter.y(npath->pts[0], npath->pts[1]), npath->pts[1], 1.0);
+		so.locked = false;
+		so.radius = rd;
+		vc.push_back(so);
+	}
+
 	static void regular_sampling(const NSVGpath * path, double delta, std::vector<glm::vec3>& samples_pos, std::vector<glm::vec3>& samples_tan, float* tot = 0) {
 		int ip = 0;
 		std::vector<glm::vec3> controlPoints;
@@ -55,7 +64,7 @@ struct game_loader {
 				push_stick_object(shape->paths, 2.f, r.lamps);
 			else
 			if (std::string(shape->id).find("cameraman") != std::string::npos)
-				push_stick_object(shape->paths, 1.f, r.cameramen);
+				push_cameraman(shape->paths, 15.f, r.cameramen);
 			else
 				if (std::string(shape->id).find("track") != std::string::npos) {
 					int ip = 0;
