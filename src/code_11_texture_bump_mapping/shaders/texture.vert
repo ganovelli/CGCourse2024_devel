@@ -16,30 +16,28 @@ uniform mat4 uModel;
 uniform vec4 uLdir;
 uniform int uRenderMode;
 
-out vec3 dbg;
 
 void main(void) 
 { 
-    // computing the tangent frame
+    // computing the (inverse of the ) tangent frame
     vec3 tangent = normalize(aTangent);
     vec3 bitangent = normalize(cross(aNormal,tangent));
 	
 	mat3 TF;
-
 	TF[0]	= tangent;
 	TF[1]	= bitangent;
 	TF[2]	= normalize(aNormal);
 	TF		= transpose(TF);
 
+	// light direction in tangent space
 	vLdirTS   =    TF * (inverse(uModel)*uLdir).xyz;
 
 	vec3 ViewVS  =  (vec4(0.0,0.0,0.0,1.0) -uView*uModel*vec4(aPosition, 1.0)).xyz; 
 
+	// view direction in tangent space
 	vVdirTS	  =    TF * (inverse(uModel)*inverse(uView)* vec4(ViewVS,0.0)).xyz;
 
 	vLdirVS   = (uView*uLdir).xyz;
-	vTexCoord = aTexCoord*vec2(1.0,1.0);
+	vTexCoord = aTexCoord;
     gl_Position = uProj*uView*uModel*vec4(aPosition, 1.0);
-	
-	dbg = aTangent;
 }

@@ -33,6 +33,8 @@ and set the path properly.
 #include <glm/ext.hpp>  
 #include <glm/gtx/string_cast.hpp>
 
+int width, height;
+
 /* light direction in world space*/
 glm::vec4 Ldir;
 
@@ -97,6 +99,22 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	 curr_tb = 1 - curr_tb;
 
 }
+/* callback function called when the windows is resized */
+void window_size_callback(GLFWwindow* window, int _width, int _height)
+{
+	width = _width;
+	height = _height;
+	glViewport(0, 0, width, height);
+	proj = glm::perspective(glm::radians(40.f), width / float(height), 2.f, 20.f);
+
+	glUseProgram(texture_shader.program);
+	glUniformMatrix4fv(texture_shader["uProj"], 1, GL_FALSE, &proj[0][0]);
+	glUniformMatrix4fv(texture_shader["uView"], 1, GL_FALSE, &view[0][0]);
+	glUseProgram(0);
+
+}
+
+
 void print_info() {
 
 	std::cout << "press left mouse button to control the trackball\n" ;
@@ -109,7 +127,7 @@ static int selected = 0;
 char diffuse_map_name[65536] = { "../../src/code_11_texture_bump_mapping/textures/brick_wall2-diff-512.png" };
 char displacement_map_name[65536] = { "../../src/code_11_texture_bump_mapping/textures/brick_wall2-diff-512.png" };
 char normal_map_name[65536] = { "../../src/code_11_texture_bump_mapping/textures/brick_wall2-nor-512.png" };
-char model_name[65536] = { "../../src/code_11_texture_bump_mapping/troll.glb" };
+char model_name[65536] = { "../../src/code_11_texture_bump_mapping/models/troll.glb" };
 
 
 void load_textures() {
@@ -141,7 +159,7 @@ void gui_setup() {
 			ImGui::Text("Set "); ImGui::SameLine(); ImGui::InputText("as displacement map", displacement_map_name, 65536);
 			ImGui::Text("Set "); ImGui::SameLine(); ImGui::InputText("as normal map", normal_map_name, 65536);
 
-			if (ImGui::Button("Set thes images as textures")) {
+			if (ImGui::Button("Set these images as textures")) {
 				load_textures();
 			}
 			ImGui::EndMenu();
@@ -174,8 +192,11 @@ int main(void)
 	if (!glfwInit())
 		return -1;
 
+	width = 1000;
+	height = 800;
 	/* Create a windowed mode window and its OpenGL context */
-	window = glfwCreateWindow(1000, 800, "code_10_shading_gui", NULL, NULL);
+	window = glfwCreateWindow(width, height, "code_11_texture_bump_mapping", NULL, NULL);
+
 	if (!window)
 	{
 		glfwTerminate();
@@ -189,6 +210,7 @@ int main(void)
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetKeyCallback(window, key_callback);
+	glfwSetWindowSizeCallback(window, window_size_callback);
 
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
@@ -240,12 +262,17 @@ int main(void)
 	Ldir = glm::vec4(0.0, 1.0, 0.0, 0.0);
 
 	/* Transformation to setup the point of view on the scene */
-	proj = glm::frustum(-1.f, 1.f, -0.8f, 0.8f, 2.f, 20.f);
-	view = glm::lookAt(glm::vec3(0, 6, 8.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
+	proj = glm::perspective(glm::radians(40.f), width / float(height), 2.f, 20.f);
+	view = glm::lookAt(glm::vec3(0, 3, 4.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
 	glUseProgram(texture_shader.program);
 	glUniformMatrix4fv(texture_shader["uProj"], 1, GL_FALSE, &proj[0][0]);
 	glUniformMatrix4fv(texture_shader["uView"], 1, GL_FALSE, &view[0][0]);
+
+	glUniform3f(texture_shader["uDiffuseColor"], 0.8f, 0.8f, 0.8f);
+	glUniform1i(texture_shader["uColorImage"], 0);
+	glUniform1i(texture_shader["uBumpmapImage"], 1);
+	glUniform1i(texture_shader["uNormalmapImage"], 2);
 	glUseProgram(0);
 	check_gl_errors(__LINE__, __FILE__, true);
 
@@ -268,10 +295,10 @@ int main(void)
 	curr_tb = 0;
 
 	/* define the viewport  */
-	glViewport(0, 0, 1000, 800);
+	glViewport(0, 0, width, height);
 
+ 	load_model();
 	load_textures();
-	load_model();
 
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
@@ -298,10 +325,7 @@ int main(void)
 		glUniformMatrix4fv(texture_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
 		glUniform4fv(texture_shader["uLdir"], 1, &curr_Ldir[0]);
 		glUniform1i(texture_shader["uRenderMode"], selected);
-		glUniform3f(texture_shader["uDiffuseColor"], 0.8f,0.8f,0.8f);
-		glUniform1i(texture_shader["uTextureImage"], 0);
-		glUniform1i(texture_shader["uBumpmapImage"], 1);
-		glUniform1i(texture_shader["uNormalmapImage"], 2);
+
 
 		switch (selected_mesh) {
 			case 0:	r_plane.bind(); 
@@ -331,7 +355,6 @@ int main(void)
 					glBindTexture(GL_TEXTURE_2D, obj[i].mater.normal_texture);
 
 					glUniformMatrix4fv(texture_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
-//					glUniform3f(texture_shader["uColor"], 1.0, 0.0, 0.0);
 					glDrawElements(obj[i]().mode, obj[i]().count, obj[i]().itype, 0);
 					stack.pop();
 				}

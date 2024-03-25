@@ -5,19 +5,18 @@ in vec2 vTexCoord;
 in vec3 vLdirVS;
 in vec3 vLdirTS;
 in vec3 vVdirTS;
-in vec3 dbg;
 
 uniform int uRenderMode;
 uniform vec3 uDiffuseColor;
 
-uniform sampler2D uTextureImage;
+uniform sampler2D uColorImage;
 uniform sampler2D uBumpmapImage;
 uniform sampler2D uNormalmapImage;
 
 
 /* Diffuse */
 vec3 diffuse( vec3 L, vec3 N){
-	return  max(0.0,dot(L,N))*texture2D(uTextureImage,vTexCoord.xy).xyz;
+	return  max(0.0,dot(L,N))*texture2D(uColorImage,vTexCoord.xy).xyz;
 }
 
 // this produce the Hue for v:0..1 (for debug purposes)
@@ -35,13 +34,13 @@ void main(void)
 	color = vec4(vTexCoord,0.0,1.0);
 	else
 	if(uRenderMode==1)
-		color = texture2D(uTextureImage,vTexCoord.xy);
+		color = texture2D(uColorImage,vTexCoord.xy);
 		else
 	if(uRenderMode==2) // mip mapping levels
 	{
 		float rho = 512.f*max(length(dFdx(vTexCoord)),length(dFdy(vTexCoord)));
 		float level = floor( log(rho)/log(2.f));
-		color = texture2D(uTextureImage,vec2(vTexCoord.x,vTexCoord.y)) * 0.5+
+		color = texture2D(uColorImage,vec2(vTexCoord.x,vTexCoord.y)) * 0.5+
 				vec4(hsv2rgb(level/9.f)* 0.5,1.0);		
 	}else
 	if(uRenderMode==3) // bump mapping
@@ -59,7 +58,6 @@ void main(void)
 		vec3 N =  texture2D(uNormalmapImage,vTexCoord.xy).xyz ;
 		N = normalize(N*2.0-1.0);
 		color =  vec4(vec3(diffuse(normalize(vLdirTS),N)),1.0);
-
 	}
 	else
 	if(uRenderMode == 5){// parallax mapping
@@ -72,6 +70,4 @@ void main(void)
       	color = vec4(diffuse(normalize(vLdirTS),N),1.0);
 	}else
 		color = vec4(1.0,.0,0.0,1.0);
-	
- // color = vec4(dbg,1.0);
 } 

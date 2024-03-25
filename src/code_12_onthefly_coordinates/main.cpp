@@ -340,7 +340,7 @@ int main(void)
  	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
 	/* Transformation to setup the point of view on the scene */
-	proj = glm::perspective(glm::radians(40.f), width / float(height), 2.f, 20.f);
+	proj = glm::perspective(glm::radians(40.f), width / float(height), 2.f, 100.f);
 	view = glm::lookAt(glm::vec3(0, 3, 4.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
 	glUseProgram(texture_shader.program);
