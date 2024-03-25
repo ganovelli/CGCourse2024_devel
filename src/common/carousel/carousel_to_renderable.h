@@ -6,8 +6,6 @@
 
 
 struct game_to_renderable {
-
-
 	
 	static void ct(float* dst, glm::vec3 src) {
 		dst[0] = src.x;

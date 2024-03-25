@@ -25,8 +25,18 @@ struct stick_object :public point_object{
 	float height;
 };
 
+struct cameraman {
+	glm::mat4 frame;
 
+	// lock if a car is closer than radius
+	float radius;
 
+	// which car is looking at
+	int target_car;
+	
+	// is looking to  a car
+	bool locked;
+};
  
 struct track {
 	track() {}
@@ -71,8 +81,7 @@ private:
 
 
 struct  terrain {
-	 
- 
+	
 	// terrain specified as an height field
 	std::vector<unsigned char> height_field;
 
@@ -88,7 +97,7 @@ struct  terrain {
 	}
 
  
-	// given a 3d point, return its orthogonal projectoin into the terrain (that is, along the y direction)
+	// given a 3d point, return its orthogonal projection into the terrain (that is, along the y direction)
 	glm::vec3  p(glm::vec3 p_in) {
 		return glm::vec3(p_in.x, y(p_in.x, p_in.z), p_in.z);
 	}
@@ -132,7 +141,7 @@ public:
 	glm::vec3 sunlight_direction;
 	std::vector<stick_object> trees;
 	std::vector<stick_object> lamps;
-	std::vector<stick_object> cameramen;
+	std::vector<cameraman> cameramen;
 	std::vector<car> cars;
 
 private:
@@ -191,6 +200,32 @@ public:
 		int daytime = (  this->sim_time + cs * sim_time_ratio) % (day_ms);
 		glm::mat4 R = glm::rotate(glm::mat4(1.f), glm::radians(360.f * daytime / float(day_ms)), glm::vec3(1, 0, 0));
 		sunlight_direction = R * glm::vec4(0.f, -1.f, 0.f,0.f);
+
+		// update cameramen frames
+		for (unsigned int ic = 0; ic < cameramen.size(); ++ic) {
+			cameraman& c = cameramen[ic];
+			glm::vec3 cp = *(glm::vec3*)&c.frame[3];
+
+			if (!c.locked) {
+				for (unsigned int ica = 0; ica < cars.size(); ++ica)
+					if (glm::length(cp - *(glm::vec3*)&cars[ica].frame[3]) < c.radius) {
+						c.target_car = ica;
+						c.locked = true;
+						break;
+					}
+			}
+
+			if (c.locked) {
+				glm::vec3 tcp = *(glm::vec3*)&cars[c.target_car].frame[3];
+				if (glm::length(cp - tcp) < c.radius)
+				{
+					c.frame = glm::lookAt(cp, tcp, glm::vec3(0, 1, 0));
+					c.frame = glm::inverse(c.frame);
+				}
+				else
+					c.locked = false;
+			}
+		}
 	}
 
 };

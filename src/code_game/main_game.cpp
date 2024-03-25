@@ -179,7 +179,6 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 			glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
 			glUniform3f(basic_shader["uColor"], -1.f, 0.6f, 0.f);
 			fram.bind();
-//			glDrawElements(fram().mode, fram().count, fram().itype, 0);
 			glDrawArrays(GL_LINES, 0, 6);
 
 			glColor3f(0, 0, 1);
@@ -214,13 +213,14 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 				stack.pop();
 			}
 
-			r_cube.bind();
+			fram.bind();
 			for (unsigned int ic = 0; ic < r.cameramen.size(); ++ic) {
 				stack.push();
-				stack.mult(glm::translate(glm::mat4(1.f), r.cameramen[ic].pos));
+				stack.mult(r.cameramen[ic].frame);
+				stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(4, 4,4)));
 				glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
-				glUniform3f(basic_shader["uColor"], 0, 0.3f, 8.f);
-				glDrawElements(r_cube().mode, r_cube().count, r_cube().itype, 0);
+				glUniform3f(basic_shader["uColor"], -1.f, 0.6f, 0.f);
+				glDrawArrays(GL_LINES, 0, 6);
 				stack.pop();
 			}
 			glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);

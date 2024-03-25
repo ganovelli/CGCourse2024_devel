@@ -52,21 +52,11 @@ struct gltf_loader {
 	}
 
 	void visit_node(glm::mat4  currT, int i_node) {
-		if (!model.nodes[i_node].children.empty()) {
-			const std::vector<double> & m = model.nodes[i_node].matrix;
-			if (!m.empty())
-				currT = currT * glm::mat4(m[0], m[1], m[2], m[3],
-					m[4], m[5], m[6], m[7],
-					m[8], m[9], m[10], m[11],
-					m[12], m[13], m[14], m[15]);
-			assert(model.nodes[i_node].mesh == -1); // a node with chidren does not have mesh
-			for (unsigned int ic = 0; ic < model.nodes[i_node].children.size(); ++ic)
-				visit_node(currT, model.nodes[i_node].children[ic]);
-		}
-		else {
-			if (model.nodes[i_node].mesh == -1)
-				return;
 
+ 
+			if (model.nodes[i_node].mesh != -1)
+			{
+			
 			tinygltf::Mesh* mesh_ptr = mesh_ptr = &model.meshes[model.nodes[i_node].mesh];
 
 			const std::vector<double> & m = model.nodes[i_node].matrix;
@@ -136,9 +126,9 @@ struct gltf_loader {
 						size_t bufferviewOffset = model.bufferViews[accessor.bufferView].byteOffset;
 
 						switch (accessor.componentType) {
-							case TINYGLTF_PARAMETER_TYPE_FLOAT: r.add_vertex_attribute<float>((float*)&model.buffers[buffer].data[bufferviewOffset + accessor.byteOffset], n_comp * n_vert, attr_index, n_comp, byteStride);break;
-							case TINYGLTF_PARAMETER_TYPE_BYTE: r.add_vertex_attribute<char>((char*)&model.buffers[buffer].data[bufferviewOffset + accessor.byteOffset], n_comp * n_vert, attr_index, n_comp, byteStride);break;
-							case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: r.add_vertex_attribute<unsigned char>((unsigned char*)&model.buffers[buffer].data[bufferviewOffset + accessor.byteOffset], n_comp * n_vert, attr_index, n_comp, byteStride);break;
+							case TINYGLTF_PARAMETER_TYPE_FLOAT: r.add_vertex_attribute<float>((float*)&model.buffers[buffer].data[bufferviewOffset + accessor.byteOffset], n_comp * n_vert, attr_index, n_comp);break;
+							case TINYGLTF_PARAMETER_TYPE_BYTE: r.add_vertex_attribute<char>((char*)&model.buffers[buffer].data[bufferviewOffset + accessor.byteOffset], n_comp * n_vert, attr_index, n_comp);break;
+							case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: r.add_vertex_attribute<unsigned char>((unsigned char*)&model.buffers[buffer].data[bufferviewOffset + accessor.byteOffset], n_comp * n_vert, attr_index, n_comp);break;
 						}
 						// if the are the position compute the object bounding box
 						if (attr_index == 0) {
@@ -180,6 +170,7 @@ struct gltf_loader {
 					indexAccessor.ByteStride(model.bufferViews[indexAccessor.bufferView]);
 				assert(byteStride != -1);
 
+				// one long texture, just a stub implementation
 				int buffer = model.bufferViews[indexAccessor.bufferView].buffer;
 				size_t bufferviewOffset = model.bufferViews[indexAccessor.bufferView].byteOffset;
 
@@ -206,10 +197,17 @@ struct gltf_loader {
 
 				index = mat.emissiveTexture.index;
 				r.mater.emissive_texture = (index != -1) ? this->id_textures[index] : -1;
-
-
 			}
-			//	return true;
+		}
+		if (!model.nodes[i_node].children.empty()) {
+			const std::vector<double>& m = model.nodes[i_node].matrix;
+			if (!m.empty())
+				currT = currT * glm::mat4(m[0], m[1], m[2], m[3],
+					m[4], m[5], m[6], m[7],
+					m[8], m[9], m[10], m[11],
+					m[12], m[13], m[14], m[15]);
+			for (unsigned int ic = 0; ic < model.nodes[i_node].children.size(); ++ic)
+				visit_node(currT, model.nodes[i_node].children[ic]);
 		}
 	}
 
@@ -224,7 +222,7 @@ struct gltf_loader {
 		check_gl_errors(__LINE__, __FILE__);
 
 
-		// load textures
+		// load texture
 		for (unsigned int it = 0; it < model.textures.size(); ++it) {
 			tinygltf::Texture& texture = model.textures[it];
 			tinygltf::Sampler sampler = model.samplers[model.textures[it].sampler];
@@ -250,7 +248,7 @@ struct gltf_loader {
 			int  channels_in_file;
 			stbi_uc* data = stbi_load_from_memory(v_ptr, bufferview.byteLength, &x, &y, &channels_in_file, image.component);
 
-//			debug stbi_write_png("read_texture.png", x, y, 4, data, 0);
+//			stbi_write_png("read_texture.png", x, y, 4, data, 0);
 
 			id_textures.push_back(0);
 			glGenTextures(1, &id_textures.back());
@@ -279,7 +277,7 @@ struct gltf_loader {
 		glm::mat4 currT(1.f);
 		visit_node(currT, 0);
 
-		// compute the bounding box of the scene
+		
 		for (unsigned int ir = 0; ir < rs.size(); ++ir)
 			for (unsigned int ic = 0; ic < 8; ++ic)
 				bbox.add(rs[ir].transform*glm::vec4(rs[ir].bbox.p(ic),1.0));
