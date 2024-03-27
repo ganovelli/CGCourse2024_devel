@@ -23,9 +23,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:document-units="mm"
      showgrid="true"
-     inkscape:zoom="4"
-     inkscape:cx="59.125"
-     inkscape:cy="59.875"
+     inkscape:zoom="8"
+     inkscape:cx="66.8125"
+     inkscape:cy="47.1875"
      inkscape:window-width="1920"
      inkscape:window-height="1009"
      inkscape:window-x="-8"
@@ -327,7 +327,7 @@
        y="18.048815" />
     <rect
        style="fill:#0080ff;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;fill-opacity:1"
-       id="cameraman"
+       id="cameraman_15_"
        width="0.62838542"
        height="0.72760415"
        x="25.246798"
@@ -573,21 +573,21 @@
        y="10.534113" />
     <rect
        style="fill:#0080ff;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;fill-opacity:1"
-       id="cameraman1"
+       id="cameraman1_15_"
        width="0.62838542"
        height="0.72760415"
        x="21.34132"
        y="4.5472755" />
     <rect
        style="fill:#0080ff;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="cameraman1-0"
+       id="cameraman1-0_15_"
        width="0.62838542"
        height="0.72760415"
        x="7.099196"
        y="4.6174335" />
     <rect
        style="fill:#0080ff;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="cameraman1-0-5"
+       id="cameraman1-0-5_15_"
        width="0.62838542"
        height="0.72760415"
        x="2.1993492"

@@ -83,7 +83,7 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 	{
 		race r;
 		
-		game_loader::load("small_test.svg", "terrain_256.png",r);
+		carousel_loader::load("small_test.svg", "terrain_256.png",r);
 		
 		//add 10 cars
 		for (int i = 0; i < 10; ++i)		
@@ -184,12 +184,12 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 			glColor3f(0, 0, 1);
 			glBegin(GL_LINES);
 			glVertex3f(0, 0, 0);
-			glVertex3f(r.sunlight_direction.x, r.sunlight_direction.y, r.sunlight_direction.z);
+			glVertex3f(r.sunlight_direction().x, r.sunlight_direction().y, r.sunlight_direction().z);
 			glEnd();
 
 
-			float s = 1.f/r.bbox.diagonal();
-			glm::vec3 c = r.bbox.center();
+			float s = 1.f/r.bbox().diagonal();
+			glm::vec3 c = r.bbox().center();
 
 			stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(s)));
 			stack.mult(glm::translate(glm::mat4(1.f), -c));
@@ -202,9 +202,9 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 			glDrawArrays(GL_POINTS, 0, r_terrain.vn);
 			glDepthRange(0.0, 1);
 
-			for (unsigned int ic = 0; ic < r.cars.size(); ++ic) {
+			for (unsigned int ic = 0; ic < r.cars().size(); ++ic) {
 				stack.push();
-				stack.mult(r.cars[ic].frame);
+				stack.mult(r.cars()[ic].frame);
 				stack.mult(glm::translate(glm::mat4(1.f), glm::vec3(0,0.1,0.0)));
 				glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
 				glUniform3f(basic_shader["uColor"], -1.f, 0.6f, 0.f);
@@ -214,9 +214,9 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 			}
 
 			fram.bind();
-			for (unsigned int ic = 0; ic < r.cameramen.size(); ++ic) {
+			for (unsigned int ic = 0; ic < r.cameramen().size(); ++ic) {
 				stack.push();
-				stack.mult(r.cameramen[ic].frame);
+				stack.mult(r.cameramen()[ic].frame);
 				stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(4, 4,4)));
 				glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
 				glUniform3f(basic_shader["uColor"], -1.f, 0.6f, 0.f);
@@ -228,7 +228,6 @@ void key_callback(GLFWwindow * window, int key, int scancode, int action, int mo
 			r_track.bind();
 			glPointSize(3.0);
 			glUniform3f(basic_shader["uColor"], 0.2f, 0.3f, 0.2f);
-			//glDrawArrays(GL_TRIANGLE_STRIP, 0, r_track.vn-1000);
 			glDrawArrays(GL_LINE_STRIP, 0, r_track.vn);
 			glPointSize(1.0);
 
