@@ -73,6 +73,12 @@ renderable r_frame, r_plane,r_line,r_torus,r_cube, r_sphere;
 /* program shaders used */
 shader texture_shader,flat_shader;
 
+/* textures used */
+texture skybox, reflection_map;
+
+/* mode selected */
+int selected = 0;
+
 /* implementation of view controller */
 
 /* azimuthal and elevation angle*/
@@ -94,7 +100,6 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
 			start_xpos = (float)xpos;
 			start_ypos = (float)ypos;
 			view_rot = glm::rotate(glm::rotate(glm::mat4(1.f), d_alpha, glm::vec3(0,1,0)), d_beta, glm::vec3(1,0,0));
-
 		}
 	}
 }
@@ -142,7 +147,7 @@ void window_size_callback(GLFWwindow* window, int _width, int _height)
 	width = _width;
 	height = _height;
 	glViewport(0, 0, width, height);
-	proj = glm::perspective(glm::radians(40.f), width / float(height), 2.f, 20.f);
+	proj = glm::perspective(glm::radians(40.f), width / float(height), 2.f, 100.f);
 
 	glUseProgram(texture_shader.program);
 	glUniformMatrix4fv(texture_shader["uProj"], 1, GL_FALSE, &proj[0][0]);
@@ -154,12 +159,10 @@ void window_size_callback(GLFWwindow* window, int _width, int _height)
 void print_info() {
 }
 
-texture skybox,reflection_map;
 
-static int selected = 0;
 
 void load_textures() {
-	std::string path = "../../models/textures/desert_cubemap/";
+	std::string path = "./textures/envmap/";
 	skybox.load_cubemap(path + "posx.jpg", path + "negx.jpg", 
 						path + "posy.jpg", path + "negy.jpg",
 						path + "posz.jpg", path + "negz.jpg",1);
@@ -173,7 +176,7 @@ void gui_setup() {
 
 	if (ImGui::BeginMenu("Texture mode"))
 	{
-	 if (ImGui::Selectable("Show texture coordinates", selected == 0)) selected = 0;
+	 if (ImGui::Selectable("just diffuse grey", selected == 0)) selected = 0;
 	 if (ImGui::Selectable("Projective Texturing", selected == 1)) selected = 1;
 	 if (ImGui::Selectable("Skybox", selected == 2)) selected = 2;
 	 if (ImGui::Selectable("Reflection", selected == 3)) selected = 3;
@@ -335,12 +338,12 @@ int main(void)
 	/* light projection */
 	Lproj.proj = glm::frustum(-0.1f,0.1f, -0.05f, 0.05f, 2.f, 40.f);
 	Lproj.view = glm::lookAt(glm::vec3(4, 4, 6.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
-	Lproj.tex.load("../../models/textures/batman.png",0);
+	Lproj.tex.load("./textures/batman.png",0);
  	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
  	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
 	/* Transformation to setup the point of view on the scene */
-	proj = glm::perspective(glm::radians(40.f), width / float(height), 2.f, 20.f);
+	proj = glm::perspective(glm::radians(40.f), width / float(height), 2.f, 100.f);
 	view = glm::lookAt(glm::vec3(0, 3, 4.f), glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 1.f, 0.f));
 
 	glUseProgram(texture_shader.program);
@@ -387,7 +390,7 @@ int main(void)
 		gui_setup();
 
 		/* rotate the view accordingly to view_rot*/
-		/* Exc: find a simpler series of operations to define curr_view*/
+		/* Exercise: find a simpler series of operations to define curr_view*/
 		view_frame = inverse(view);
 		glm::mat4 curr_view = view_frame;
 		curr_view[3] = glm::vec4(0, 0, 0, 1);
