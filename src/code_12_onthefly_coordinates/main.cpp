@@ -8,11 +8,6 @@
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
-
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
-
 #include "..\common\debugging.h"
 #include "..\common\renderable.h"
 #include "..\common\shaders.h"
@@ -22,7 +17,10 @@
 #include "..\common\trackball.h"
 #include "..\common\frame_buffer_object.h"
 
-#define TINYOBJLOADER_IMPLEMENTATION
+#define TINYGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+
 #include "..\common\gltf_loader.h"
 
 /*

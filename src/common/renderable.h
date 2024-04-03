@@ -6,13 +6,16 @@
 
 struct material {
 	std::string name;
-	glm::vec4 base_color_factor;
+	std::string alpha_mode;
+	double alpha_cutoff;
+	double base_color_factor[4];
 	GLint base_color_texture; 
-	float metallic_factor;
-	float roughness_factor;
+	GLint roughness_texture;
+	double metallic_factor;
+	double roughness_factor;
 	GLint normal_texture;
 	GLint emissive_texture;
-
+	GLint occlusion_texture;
 };
 
 
