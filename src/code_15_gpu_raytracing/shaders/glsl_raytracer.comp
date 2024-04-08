@@ -15,6 +15,11 @@ vec3 background_color;
 
 uniform ivec2 uResolution;
 
+uniform mat4 uProj_inv;
+uniform mat4 uView_inv;
+uniform mat4 uModel_inv;
+
+
 uint base_hash(uvec2 p) {
     p = 1103515245U*((p >> 1U)^(p.yx));
     uint h32 = 1103515245U*((p.x)^(p.y>>3U));
@@ -146,7 +151,6 @@ bool intersect_quad( in Ray r, in Quad q,out hit_info nfo){
     if(intPoint.y >  q.size.y/2.0) return false;
        
     mat3 axesT = transpose(q.axes);
-   // nfo.point = axesT*intPoint+q.pos;
     nfo.point = r.pos+t*r.dir;
     nfo.normal = axesT[2];
     nfo.mat.albedo = q.mat.albedo;
@@ -165,9 +169,21 @@ Ray primaryRay( in vec2 winpos ) {
     r.pos = vec3( 0.0 ); // viewpos (eye) in origin!
     r.dir.x = (winpos.x - uResolution.x / 2.0) / (uResolution.x / 2.0);
     r.dir.y = (winpos.y - uResolution.y / 2.0) / (uResolution.x / 2.0);
-    r.dir.z = -near;
-    r.dir = normalize( r.dir );
-    return r;
+
+    vec4 p0 = uProj_inv*vec4(r.dir.x,r.dir.y,-1.0,1.0);
+    p0/=p0.w;
+
+    vec4 p1 = uProj_inv*vec4(r.dir.x,r.dir.y, 1.0,1.0);
+    p1/=p1.w;
+
+    r.dir = normalize((p1-p0).xyz);
+
+    r.dir = normalize((uModel_inv * uView_inv *vec4(r.dir,0)).xyz);
+    r.pos   = (uModel_inv * uView_inv *vec4(r.pos,1.0)).xyz;
+
+//    r.dir.z = -near;
+//    r.dir = normalize( r.dir );
+     return r;
 }
 
 hit_info closest(in hit_info nfo1,in hit_info nfo2){
@@ -284,8 +300,6 @@ void main()
     sphereA = Sphere( vec3(0.0,0.0,-4.0)  , 0.5 ,Material(vec3(0.7,0.7,0.9),LAMBERTIAN) );
     sphereB = Sphere( vec3(0.4, 0.2,-2.7) , 0.2 ,Material(vec3(0.4,0.3,0.7),LAMBERTIAN) );
  
-   
-
     background_color = vec3(0.0, 0.5, 0.6);
     vec2 tc;
 
