@@ -23,7 +23,7 @@
 #include "..\common\matrix_stack.h"
 #include "..\common\intersection.h"
 #include "..\common\trackball.h"
-
+#include "..\common\frame_buffer_object.h"
 
 /*
 GLM library for math  https://github.com/g-truc/glm
@@ -206,14 +206,18 @@ int main(int argc, char ** argv)
 
 	proj = glm::frustum(-1.f, 1.f, -1.f, 1.f, 2.f, 100.f);
 	view = glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 1.f, 0.f));
-	glm::mat4 proj_1 = glm::inverse(proj);
+	glm::mat4 proj_inv = glm::inverse(proj);
+	glm::mat4 view_inv = glm::inverse(view);
+
 
 	glUseProgram(rt_shader.program);
-	//glUniformMatrix4fv(rt_shader["uProj_1"], 1, GL_FALSE, &proj_1[0][0]);
+	glUniformMatrix4fv(rt_shader["uProj_inv"], 1, GL_FALSE, &proj_inv[0][0]);
 	glUniform2i(rt_shader["uResolution"], TEXTURE_WIDTH, TEXTURE_HEIGHT);
 	int _ = true;
 
-
+	frame_buffer_object fbo;
+	fbo.create(TEXTURE_WIDTH, TEXTURE_HEIGHT);
+	
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
@@ -223,20 +227,26 @@ int main(int argc, char ** argv)
 
 		check_gl_errors(__LINE__, __FILE__, false);
 
+		
 
 		glUseProgram(rt_shader.program);
-	//	glUniformMatrix4fv(rt_shader["uView"], 1, GL_FALSE, &view[0][0]);
+	 	glUniformMatrix4fv(rt_shader["uView_inv"], 1, GL_FALSE, &view[0][0]);
 
 		 
 	//	glUniformMatrix4fv(rt_shader["uTrackball"], 1, GL_FALSE, &tb[0].matrix()[0][0]);
 		stack.push();
-		stack.mult(glm::translate(glm::mat4(1.0), glm::vec3(0, 0, -4)));
-		stack.mult(glm::scale(glm::mat4(1.0), glm::vec3(0.125, 0.125, 0.125)));
-//		glUniformMatrix4fv(rt_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
+		stack.mult(tb[0].matrix());
+		
+ 		glUniformMatrix4fv(rt_shader["uModel_inv"], 1, GL_FALSE, &glm::inverse(stack.m())[0][0]);
 		stack.pop();
 
 		if (_) {
-			// _ = false;
+			if (tb[0].is_changed()) {
+				glBindFramebuffer(GL_FRAMEBUFFER,fbo.id_fbo);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+				glClear(GL_COLOR_BUFFER_BIT);
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			}
 			check_gl_errors(__LINE__, __FILE__, false);
 			glUseProgram(rt_shader.program);
 			glUniform1i(iTime_loc, clock());
