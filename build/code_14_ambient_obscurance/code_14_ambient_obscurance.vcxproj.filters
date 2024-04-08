@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\3dparty\imgui\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="..\..\3dparty\imgui\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="..\..\3dparty\imgui\imgui.cpp" />
+    <ClCompile Include="..\..\3dparty\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\..\3dparty\imgui\imgui_tables.cpp" />
+    <ClCompile Include="..\..\3dparty\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\..\src\code_14_ambient_obscurance\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\common\aabb.h" />
+    <ClInclude Include="..\..\src\common\box3.h" />
+    <ClInclude Include="..\..\src\common\debugging.h" />
+    <ClInclude Include="..\..\src\common\frame_buffer_object.h" />
+    <ClInclude Include="..\..\src\common\game_builder.h" />
+    <ClInclude Include="..\..\src\common\gltf_loader.h" />
+    <ClInclude Include="..\..\src\common\intersection.h" />
+    <ClInclude Include="..\..\src\common\matrix_stack.h" />
+    <ClInclude Include="..\..\src\common\octree.h" />
+    <ClInclude Include="..\..\src\common\path.h" />
+    <ClInclude Include="..\..\src\common\renderable.h" />
+    <ClInclude Include="..\..\src\common\shaders.h" />
+    <ClInclude Include="..\..\src\common\simple_shapes.h" />
+    <ClInclude Include="..\..\src\common\texture.h" />
+    <ClInclude Include="..\..\src\common\trackball.h" />
+    <ClInclude Include="..\..\src\common\view_manipulator.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="NewFilter1">
+      <UniqueIdentifier>{a44b0147-640f-4de3-a619-14ef149e0263}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\code_14_ambient_obscurance\shaders\ao.frag">
+      <Filter>NewFilter1</Filter>
+    </None>
+    <None Include="..\..\src\code_14_ambient_obscurance\shaders\ao.vert">
+      <Filter>NewFilter1</Filter>
+    </None>
+    <None Include="..\..\src\code_14_ambient_obscurance\shaders\blur.frag">
+      <Filter>NewFilter1</Filter>
+    </None>
+    <None Include="..\..\src\code_14_ambient_obscurance\shaders\depthmap.frag">
+      <Filter>NewFilter1</Filter>
+    </None>
+    <None Include="..\..\src\code_14_ambient_obscurance\shaders\depthmap.vert">
+      <Filter>NewFilter1</Filter>
+    </None>
+    <None Include="..\..\src\code_14_ambient_obscurance\shaders\final.frag">
+      <Filter>NewFilter1</Filter>
+    </None>
+    <None Include="..\..\src\code_14_ambient_obscurance\shaders\final.vert">
+      <Filter>NewFilter1</Filter>
+    </None>
+    <None Include="..\..\src\code_14_ambient_obscurance\shaders\flat.frag">
+      <Filter>NewFilter1</Filter>
+    </None>
+    <None Include="..\..\src\code_14_ambient_obscurance\shaders\flat.vert">
+      <Filter>NewFilter1</Filter>
+    </None>
+    <None Include="..\..\src\code_14_ambient_obscurance\shaders\fsq.frag">
+      <Filter>NewFilter1</Filter>
+    </None>
+    <None Include="..\..\src\code_14_ambient_obscurance\shaders\fsq.vert">
+      <Filter>NewFilter1</Filter>
+    </None>
+    <None Include="..\..\src\code_14_ambient_obscurance\shaders\g_buffer.frag">
+      <Filter>NewFilter1</Filter>
+    </None>
+    <None Include="..\..\src\code_14_ambient_obscurance\shaders\g_buffer.vert">
+      <Filter>NewFilter1</Filter>
+    </None>
+    <None Include="..\..\src\code_14_ambient_obscurance\shaders\shadow_mapping.frag">
+      <Filter>NewFilter1</Filter>
+    </None>
+    <None Include="..\..\src\code_14_ambient_obscurance\shaders\shadow_mapping.vert">
+      <Filter>NewFilter1</Filter>
+    </None>
+    <None Include="..\..\src\code_14_ambient_obscurance\shaders\texture.frag">
+      <Filter>NewFilter1</Filter>
+    </None>
+    <None Include="..\..\src\code_14_ambient_obscurance\shaders\texture.vert">
+      <Filter>NewFilter1</Filter>
+    </None>
+  </ItemGroup>
+</Project>

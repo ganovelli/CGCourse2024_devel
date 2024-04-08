@@ -1,4 +1,4 @@
-#version 330 core  
+#version 430 core  
 out vec4 color; 
 
 in vec4 vCoordLS;
@@ -82,7 +82,7 @@ void main(void)
 		for( float y = 0.0; y < 5.0;y+=1.0)
 			{
 				storedDepth =  texture(uShadowMap,pLS.xy+vec2(-2.0+x,-2.0+y)/uShadowMapSize).x;
-				if(storedDepth + uBias < pLS.z || dot(N,L)<0.f)    
+				if(storedDepth + uBias < pLS.z )    
 					lit  -= 1.0/25.0;
 			}
 		color = vec4(diffuse_ligth*lit+ambient_ligth,1.0);

@@ -52,7 +52,7 @@ struct projector {
 		view_matrix = _view_matrix;
 
 		/* TBD: set the view volume properly so that they are a close fit of the 
-		bounding box passed as paramter */
+		bounding box passed as parameter */
 		proj_matrix =  glm::ortho(-4.f, 4.f, -4.f, 4.f,0.f, distance_light*2.f);
 //		proj_matrix = glm::perspective(3.14f/2.f,1.0f,0.1f, distance_light*2.f);
 		return proj_matrix;
@@ -579,12 +579,12 @@ int main(void)
 
 
 
-		// glDisable(GL_DEPTH_TEST);
-		// glViewport(0, 0, 512, 512);
-	  	//	blur_texture(Lproj.tex.id);
-		// draw_texture(Lproj.tex.id);
-		//glEnable(GL_DEPTH_TEST);
-		// draw_texture(fbo.id_tex);
+// glDisable(GL_DEPTH_TEST);
+// glViewport(0, 0, 512, 512);
+// blur_texture(Lproj.tex.id);
+// draw_texture(Lproj.tex.id);
+// glEnable(GL_DEPTH_TEST);
+// draw_texture(fbo.id_tex);
 
 
 		check_gl_errors(__LINE__, __FILE__);
