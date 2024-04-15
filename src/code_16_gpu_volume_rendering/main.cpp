@@ -101,7 +101,7 @@ void set_storage() {
 	check_gl_errors(__LINE__, __FILE__);
 }
 
-std::string shaders_path = "../../src/code_15_gpu_raytracing/shaders/";
+std::string shaders_path = "../../src/code_16_gpu_volume_rendering/shaders/";
 shader rt_shader;
  
 int iTime_loc, uWidth_loc,  uBbox_loc;
@@ -119,7 +119,7 @@ int main(int argc, char ** argv)
 	height = 1024;
 
 		/* Create a windowed mode window and its OpenGL context */
-	window = glfwCreateWindow(width, height, "code_15_gpu_raytracing", NULL, NULL);
+	window = glfwCreateWindow(width, height, "code_16_gpu_volume_rendering", NULL, NULL);
 	if (!window)
 	{
 		glfwTerminate();
@@ -141,10 +141,36 @@ int main(int argc, char ** argv)
 
 	printout_opengl_glsl_info();
 
-
-
+	// create a 3d texture
+	int w, h, d;
+	w = 128;
+	h = 256;
+	d = 256;
+	GLuint id;
+	glGenTextures(1, &id);
 	check_gl_errors(__LINE__, __FILE__);
-	rt_shader.create_program((shaders_path + "glsl_raytracer.comp").c_str());
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_3D, id);
+	 
+	char * data = new char[w*h*d*2];
+	
+	FILE*f = fopen(argv[1], "rb");
+	if (f == 0)
+		exit(-1);
+	fread_s(data, w*h*d, 1, w*h*d, f);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_R16, w, h, d, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+	delete[] data;
+	fclose(f);
+
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	
+	check_gl_errors(__LINE__, __FILE__);
+	rt_shader.create_program((shaders_path + "glsl_volume_renderer.comp").c_str());
 	check_gl_errors(__LINE__, __FILE__);
 
 	set_storage();
@@ -152,8 +178,9 @@ int main(int argc, char ** argv)
 	check_gl_errors(__LINE__, __FILE__);
 	glUseProgram(rt_shader.program);
 	glUniform1i(rt_shader["iTime"], 0 * clock());
+	glUniform1i(rt_shader["uMaxSteps"], 1000);
 
-	glDispatchCompute((unsigned int)width, (unsigned int)height, 1);
+	glDispatchCompute((unsigned int)width/32, (unsigned int)height/32, 1);
 	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
 	check_gl_errors(__LINE__, __FILE__);
@@ -175,11 +202,13 @@ int main(int argc, char ** argv)
 	glDisable(GL_CULL_FACE);
 
 	tb[0].reset();
-	tb[0].set_center_radius(glm::vec3(0, 0, -4), 1.f);
+	tb[0].set_center_radius(glm::vec3(0, 0, 0), 100.f);
 	curr_tb = 0;
 
-	proj = glm::frustum(-1.f, 1.f, -1.f, 1.f, 2.f, 100.f);
-	view = glm::lookAt(glm::vec3(0.f, 0.f, 0.f), glm::vec3(0.f, 0.f, -1.f), glm::vec3(0.f, 1.f, 0.f));
+//	proj = glm::frustum(-1.f, 1.f, -1.f, 1.f, 1.f, 10.f);
+	proj = glm::ortho(-300.f, 300.f, -300.f, 300.f, 1.f, 10.f);
+	view = glm::lookAt(glm::vec3(0,0,512), glm::vec3(0,0,0), glm::vec3(0.f, 1.f, 0.f));
+//	view = glm::lookAt(glm::vec3(0, 0, 5), glm::vec3(0, 0, 0), glm::vec3(0.f, 1.f, 0.f));
 	glm::mat4 proj_inv = glm::inverse(proj);
 	glm::mat4 view_inv = glm::inverse(view);
 
@@ -187,6 +216,9 @@ int main(int argc, char ** argv)
 	glUseProgram(rt_shader.program);
 	glUniformMatrix4fv(rt_shader["uProj_inv"], 1, GL_FALSE, &proj_inv[0][0]);
 	glUniform2i(rt_shader["uResolution"], width, height);
+	glUniform1i(rt_shader["uVolume"], 1);
+	glUniform3f(rt_shader["uNCells"], w,h,d); 
+
 	int _ = true;
 
 	frame_buffer_object fbo;
@@ -210,14 +242,14 @@ int main(int argc, char ** argv)
 
 		check_gl_errors(__LINE__, __FILE__, false);
 
-		
-
 		glUseProgram(rt_shader.program);
 	 	glUniformMatrix4fv(rt_shader["uView_inv"], 1, GL_FALSE, &view_inv[0][0]);
 
 		stack.push();
 		stack.mult(tb[0].matrix());
-		
+//		stack.mult(glm::rotate(glm::mat4(1.f), clock()/10000.f,glm::vec3(0, 1, 0)));
+		stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(1.5, 1.0, 1.0)));
+		stack.mult(glm::translate(glm::mat4(1.f), glm::vec3(-64, -128, -128)));
  		glUniformMatrix4fv(rt_shader["uModel_inv"], 1, GL_FALSE, &glm::inverse(stack.m())[0][0]);
 		stack.pop();
 
@@ -226,11 +258,15 @@ int main(int argc, char ** argv)
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
 			glClear(GL_COLOR_BUFFER_BIT);
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glUniform1i(rt_shader["uMaxSteps"], 1000);
 		}
+		else
+			glUniform1i(rt_shader["uMaxSteps"], 1000);
+
 		check_gl_errors(__LINE__, __FILE__, false);
 		glUseProgram(rt_shader.program);
-		glUniform1i(iTime_loc, clock());
-		glDispatchCompute((unsigned int)width/32, (unsigned int)height/32, 1);
+		glUniform1i(rt_shader["iTime"], (int)clock());
+ 		glDispatchCompute((unsigned int)width/32, (unsigned int)height/32, 1);
 		check_gl_errors(__LINE__, __FILE__,false);
 		
 
