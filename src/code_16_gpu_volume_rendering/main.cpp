@@ -25,6 +25,7 @@ and set the path properly.
 #include <glm/gtx/string_cast.hpp>
 
 int width, height;
+bool slice = true;
 /* light direction in world space*/
 glm::vec4 Ldir;
 
@@ -42,7 +43,7 @@ glm::mat4 view;
 renderable  r_plane;
 
 /* program shaders used */
-shader tex_shader;
+shader tex_shader, tex_shader3d;
 
 matrix_stack stack;
 float scaling_factor = 1.0;
@@ -68,16 +69,22 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		}
 }
 
+float plane_y = 0;
 /* callback function called when a mouse wheel is rotated */
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	if (curr_tb == 0)
 		tb[0].mouse_scroll(xoffset, yoffset);
+	else
+		plane_y += (yoffset > 0) ? 0.01 : -0.01;
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	/* every time any key is presse it switch from controlling trackball tb[0] to tb[1] and viceversa */
 	if (action == GLFW_PRESS)
+		if (key == 65)
+			slice = !slice;
+		else
 		curr_tb = 1 - curr_tb;
 
 }
@@ -154,7 +161,6 @@ int main(int argc, char ** argv)
 	glBindTexture(GL_TEXTURE_3D, id);
 	 
 	char * data = new char[w*h*d*2];
-	
 	FILE*f = fopen(argv[1], "rb");
 	if (f == 0)
 		exit(-1);
@@ -187,10 +193,11 @@ int main(int argc, char ** argv)
 
 	/* load the shaders */
 	tex_shader.create_program((shaders_path + "tex.vert").c_str(), (shaders_path + "tex.frag").c_str());
+	tex_shader3d.create_program((shaders_path + "tex3d.vert").c_str(), (shaders_path + "tex3d.frag").c_str());
 
 	/* crete a rectangle*/
 	shape s_plane;
-	shape_maker::rectangle(s_plane, 10, 10);
+	shape_maker::rectangle(s_plane, 1, 1);
 	s_plane.to_renderable(r_plane);
 
 	print_info();
@@ -202,23 +209,30 @@ int main(int argc, char ** argv)
 	glDisable(GL_CULL_FACE);
 
 	tb[0].reset();
-	tb[0].set_center_radius(glm::vec3(0, 0, 0), 100.f);
+	tb[0].set_center_radius(glm::vec3(0, 0, 0), 3.f);
+	tb[1].reset();
+	tb[1].set_center_radius(glm::vec3(0, 0, 0), 3.f);	
 	curr_tb = 0;
 
-//	proj = glm::frustum(-1.f, 1.f, -1.f, 1.f, 1.f, 10.f);
-	proj = glm::ortho(-300.f, 300.f, -300.f, 300.f, 1.f, 10.f);
-	view = glm::lookAt(glm::vec3(0,0,512), glm::vec3(0,0,0), glm::vec3(0.f, 1.f, 0.f));
-//	view = glm::lookAt(glm::vec3(0, 0, 5), glm::vec3(0, 0, 0), glm::vec3(0.f, 1.f, 0.f));
+	proj = glm::frustum(-1.f, 1.f, -1.f, 1.f, 1.f, 10.f);
+//	proj = glm::ortho(-300.f, 300.f, -300.f, 300.f, 1.f, 1000.f);
+//	view = glm::lookAt(glm::vec3(0,0,512), glm::vec3(0,0,0), glm::vec3(0.f, 1.f, 0.f));
+	view = glm::lookAt(glm::vec3(0, 0, 4 ), glm::vec3(0, 0, 0), glm::vec3(0.f, 1.f, 0.f));
+	//	view = glm::lookAt(glm::vec3(0, 0, 5), glm::vec3(0, 0, 0), glm::vec3(0.f, 1.f, 0.f));
 	glm::mat4 proj_inv = glm::inverse(proj);
 	glm::mat4 view_inv = glm::inverse(view);
 
+	glUseProgram(tex_shader3d.program);
+	glUniform3f(tex_shader3d["uNCells"], w, h, d);
+	glUniform1i(tex_shader3d["uVolume"], 1);
+	glUseProgram(0);
 
 	glUseProgram(rt_shader.program);
 	glUniformMatrix4fv(rt_shader["uProj_inv"], 1, GL_FALSE, &proj_inv[0][0]);
 	glUniform2i(rt_shader["uResolution"], width, height);
 	glUniform1i(rt_shader["uVolume"], 1);
 	glUniform3f(rt_shader["uNCells"], w,h,d); 
-
+	glUseProgram(0);
 	int _ = true;
 
 	frame_buffer_object fbo;
@@ -226,6 +240,9 @@ int main(int argc, char ** argv)
 	
 	int nf = 0;
 	int cstart = clock();
+
+
+
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
@@ -237,49 +254,73 @@ int main(int argc, char ** argv)
 		nf++;
 
 		/* Render here */
-		glClearColor(0.0, 0.0, 0.0, 1.0);
+		glClearColor(0.4, 0.4, 0.4, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		check_gl_errors(__LINE__, __FILE__, false);
 
-		glUseProgram(rt_shader.program);
-	 	glUniformMatrix4fv(rt_shader["uView_inv"], 1, GL_FALSE, &view_inv[0][0]);
-
-		stack.push();
-		stack.mult(tb[0].matrix());
-//		stack.mult(glm::rotate(glm::mat4(1.f), clock()/10000.f,glm::vec3(0, 1, 0)));
-		stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(1.5, 1.0, 1.0)));
-		stack.mult(glm::translate(glm::mat4(1.f), glm::vec3(-64, -128, -128)));
- 		glUniformMatrix4fv(rt_shader["uModel_inv"], 1, GL_FALSE, &glm::inverse(stack.m())[0][0]);
-		stack.pop();
-
-		if (tb[0].is_changed()) {
-			glBindFramebuffer(GL_FRAMEBUFFER,fbo.id_fbo);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-			glClear(GL_COLOR_BUFFER_BIT);
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			glUniform1i(rt_shader["uMaxSteps"], 1000);
+		if (slice) {
+			glDisable(GL_CULL_FACE);
+			stack.push();
+			stack.mult(tb[0].matrix());
+			stack.mult(tb[1].matrix());
+			stack.mult(glm::translate(glm::mat4(1.f), glm::vec3(0, plane_y, 0)));
+			 
+			
+			glm::mat4 pM = glm::translate(glm::mat4(1.f), glm::vec3(0, plane_y, 0));
+			pM = tb[1].matrix()*pM; 
+			
+			glUseProgram(tex_shader3d.program);
+			glUniformMatrix4fv(tex_shader3d["uModelPlane"], 1, GL_FALSE, &pM[0][0]);
+			glUniformMatrix4fv(tex_shader3d["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
+			glUniformMatrix4fv(tex_shader3d["uProj"] , 1, GL_FALSE, &proj[0][0]);
+			glUniformMatrix4fv(tex_shader3d["uView"] , 1, GL_FALSE, &view[0][0]);
+			r_plane.bind();
+			glDrawElements(r_plane().mode, r_plane().count, r_plane().itype,0);
+			glUseProgram(0);
+			stack.pop();
 		}
 		else
-			glUniform1i(rt_shader["uMaxSteps"], 1000);
+		{
 
-		check_gl_errors(__LINE__, __FILE__, false);
-		glUseProgram(rt_shader.program);
-		glUniform1i(rt_shader["iTime"], (int)clock());
- 		glDispatchCompute((unsigned int)width/32, (unsigned int)height/32, 1);
-		check_gl_errors(__LINE__, __FILE__,false);
-		
+			glUseProgram(rt_shader.program);
+			glUniformMatrix4fv(rt_shader["uView_inv"], 1, GL_FALSE, &view_inv[0][0]);
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		
-		glUseProgram(tex_shader.program);
-		glUniform1i(tex_shader["tex"], 0);
-		glUniformMatrix4fv(tex_shader["uModel"], 1, GL_FALSE, &glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))[0][0]);
-		r_plane.bind();
-		glDrawElements(r_plane().mode, r_plane().count, r_plane().itype, 0);
-		glUseProgram(0);
+			stack.push();
+			stack.mult(tb[0].matrix());
+		//	stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(1.5, 1.0, 1.0)));
+			stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(1 / 128.f, 1 / 256.f,1/256.f)));
+			stack.mult(glm::translate(glm::mat4(1.f), glm::vec3(-64, -128, -128)));
+			glUniformMatrix4fv(rt_shader["uModel_inv"], 1, GL_FALSE, &glm::inverse(stack.m())[0][0]);
+			stack.pop();
 
+			if (tb[0].is_changed()) {
+				glBindFramebuffer(GL_FRAMEBUFFER, fbo.id_fbo);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+				glClear(GL_COLOR_BUFFER_BIT);
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				glUniform1i(rt_shader["uMaxSteps"], 1000);
+			}
+			else
+				glUniform1i(rt_shader["uMaxSteps"], 1000);
+
+			check_gl_errors(__LINE__, __FILE__, false);
+			glUseProgram(rt_shader.program);
+			glUniform1i(rt_shader["iTime"], (int)clock());
+			glDispatchCompute((unsigned int)width / 32, (unsigned int)height / 32, 1);
+			check_gl_errors(__LINE__, __FILE__, false);
+
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, texture);
+
+			glUseProgram(tex_shader.program);
+			glUniform1i(tex_shader["tex"], 0);
+			glUniformMatrix4fv(tex_shader["uModel"], 1, GL_FALSE, &glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))[0][0]);
+			r_plane.bind();
+			glDrawElements(r_plane().mode, r_plane().count, r_plane().itype, 0);
+			glUseProgram(0);
+		}
 		
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);

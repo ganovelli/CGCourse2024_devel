@@ -17,6 +17,16 @@ uniform mat4 uView_inv;
 uniform mat4 uModel_inv;
 uniform int uMaxSteps;
 
+vec3 hsv2rgb(vec3 c)
+{
+	vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+	vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+	return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+vec4 transfer_function(float v){
+	return vec4(hsv2rgb(vec3(v,v,4*v)), v*v*v);
+}
+
 uint base_hash(uvec2 p) {
     p = 1103515245U*((p >> 1U)^(p.yx));
     uint h32 = 1103515245U*((p.x)^(p.y>>3U));
@@ -115,7 +125,9 @@ float  intersect_cube(Ray r,vec3 corner, vec3  size){
     return (( first_exit > last_entry )&& (first_exit > 0))?  last_entry :-1.f;
 }
 
-vec3 trace_grid(Ray r,  vec3 pf, float thmin,float thmax){
+
+
+vec4 raycast_grid(Ray r,  vec3 pf, float thmin,float thmax){
 	
 	vec3 p = vec3(floor(pf.x),floor(pf.y),floor(pf.z)); 
 
@@ -125,9 +137,10 @@ vec3 trace_grid(Ray r,  vec3 pf, float thmin,float thmax){
 
 	vec3 step = vec3(sign(r.dir.x),sign(r.dir.y),sign(r.dir.z));
 
-	float cumulative = 0.f;
+	float opacity = 0.f;
+	vec3  cumulativeRGB = vec3(0,0,0);
 
-	float alpha = 0.0;
+	 
 
 	int cnt=0;
 	while(	cnt++ < uMaxSteps && 
@@ -145,12 +158,15 @@ vec3 trace_grid(Ray r,  vec3 pf, float thmin,float thmax){
 
 			// update next_t
 			next_t[im] = next_t[im] + delta[im];
-			float v = texture(uVolume,p/uNCells).x/10.f;
-
-			cumulative = cumulative  + (1.0-cumulative)* v;
+			float v = texture(uVolume,p/uNCells).x;
+			
+			vec4 col_opa = transfer_function(v);
+			
+			opacity			= opacity		 + (1.0-opacity)* col_opa.w;
+			cumulativeRGB	= cumulativeRGB  + (1.f-opacity)* col_opa.rgb*col_opa.w ;
 			}
 
-	return vec3(cumulative);
+	return vec4(cumulativeRGB,1.0);
 }
 
 void main()
@@ -162,7 +178,7 @@ void main()
 
     g_seed = float(base_hash(floatBitsToUint(fragCoord)))/float(0xffffffffU)+iTime;
 
-    vec3 col = vec3(0.0, 0.5, 0.6);
+    vec4 col = vec4(0.0, 0.5, 0.6,1.0);
     vec2 tc;
 
     Ray r = primaryRay( texelCoord );
@@ -172,13 +188,13 @@ void main()
 	if(t>0)
 		{ 
 			vec3 p = r.pos + t*r.dir;
- 			col = vec3(trace_grid(r,p,0.4,0.55));
+ 			col =  raycast_grid(r,p,0.4,0.55) ;
 		}
 
     // vec4 curr = imageLoad(imgOutput,texelCoord);
     // curr  =  curr + vec4(col,1.0); 
 
-	vec4 curr = vec4(col,1.0);
+	vec4 curr = vec4(col.xyz*col.w,1.0);
 
     imageStore(imgOutput, texelCoord, curr);
 }
