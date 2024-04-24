@@ -2,11 +2,11 @@
 #include <GLFW/glfw3.h>
 #include <string>
 #include <iostream>
-#include "..\common\debugging.h"
-#include "..\common\renderable.h"
-#include "..\common\shaders.h"
-#include "..\common\simple_shapes.h"
-#include "..\common\matrix_stack.h"
+#include "../common/debugging.h"
+#include "../common/renderable.h"
+#include "../common/shaders.h"
+#include "../common/simple_shapes.h"
+#include "../common/matrix_stack.h"
 #include <glm/ext/quaternion_float.hpp>
 
 /* 
@@ -97,7 +97,7 @@ int main(void)
     while (!glfwWindowShouldClose(window))
     {
 		/* one full rotation every 6 seconds*/
- 		t_ = (clock() / float(CLOCKS_PER_SEC));
+        t_ = (clock() / float(CLOCKS_PER_SEC));
 		float a = floor(t_);
 		t = (((int)a)% 2==0)?t_-a:1-(t_-a);
 

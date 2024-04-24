@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <string>
 #include <iostream>
-#include "..\common\debugging.h"
+#include "../common/debugging.h"
  
 
 int main(void)

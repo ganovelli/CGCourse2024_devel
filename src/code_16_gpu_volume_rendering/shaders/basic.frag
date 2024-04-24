@@ -1,12 +1,12 @@
-#version 460 core  
-out vec4 color; 
+#version 460 core
+out vec4 color;
 in vec3 vColor;
 in vec3 vPos;
 uniform vec3 uColor;
 
-void main(void) 
-{    
+void main(void)
+{
 
-   color = vec4(1,1,1, 1.0); 
+   color = vec4(1,1,1, 1.0);
 
-} 
+}

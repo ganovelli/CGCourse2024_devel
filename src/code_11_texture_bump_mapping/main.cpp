@@ -3,25 +3,25 @@
 #include <string>
 #include <iostream>
 #include <algorithm>
-#include <conio.h>
-#include <direct.h>
+// #include <conio.h>
+// #include <direct.h>
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
-#include "..\common\debugging.h"
+#include "../common/debugging.h"
 
-#include "..\common\renderable.h"
-#include "..\common\shaders.h"
-#include "..\common\simple_shapes.h"
-#include "..\common\matrix_stack.h"
-#include "..\common\intersection.h"
-#include "..\common\trackball.h"
+#include "../common/renderable.h"
+#include "../common/shaders.h"
+#include "../common/simple_shapes.h"
+#include "../common/matrix_stack.h"
+#include "../common/intersection.h"
+#include "../common/trackball.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define TINYGLTF_IMPLEMENTATION
-#include "..\common\gltf_loader.h"
-#include "..\common\texture.h"
+#include "../common/gltf_loader.h"
+#include "../common/texture.h"
 
 
 /*
