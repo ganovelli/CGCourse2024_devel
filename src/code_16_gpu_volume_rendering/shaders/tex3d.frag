@@ -17,7 +17,7 @@ vec4 transfer_function(float v){
 
 void main()
 {             
-    vec4 texCol = texture(uVolume, TexCoords);      
+    vec4 texCol = texture(uVolume, TexCoords*0.5+0.5);      
     color = vec4(vec3(texCol.x), 1.0);
  	color  = transfer_function(texCol.x);
 

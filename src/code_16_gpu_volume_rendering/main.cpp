@@ -43,7 +43,7 @@ glm::mat4 view;
 renderable  r_plane;
 
 /* program shaders used */
-shader tex_shader, tex_shader3d;
+shader tex_shader, tex_shader3d,basic_shader;
 
 matrix_stack stack;
 float scaling_factor = 1.0;
@@ -52,7 +52,8 @@ float scaling_factor = 1.0;
 /* callback function called when the mouse is moving */
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	tb[curr_tb].mouse_move(proj, view, xpos, ypos);
+	glm::mat4 vm = (curr_tb == 0) ? view :view*tb[0].matrix();
+	tb[curr_tb].mouse_move(proj, vm, xpos, ypos);
 }
 
 /* callback function called when a mouse button is pressed */
@@ -61,7 +62,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
-		tb[curr_tb].mouse_press(proj, view, xpos, ypos);
+		glm::mat4 vm = (curr_tb == 0) ? view : view*tb[0].matrix();
+		tb[curr_tb].mouse_press(proj, vm, xpos, ypos);
 	}
 	else
 		if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
@@ -164,7 +166,7 @@ int main(int argc, char ** argv)
 	FILE*f = fopen(argv[1], "rb");
 	if (f == 0)
 		exit(-1);
-	fread_s(data, w*h*d, 1, w*h*d, f);
+	fread(data,  1, w*h*d, f);
 	glTexImage3D(GL_TEXTURE_3D, 0, GL_R16, w, h, d, 0, GL_RED, GL_UNSIGNED_BYTE, data);
 	delete[] data;
 	fclose(f);
@@ -194,11 +196,12 @@ int main(int argc, char ** argv)
 	/* load the shaders */
 	tex_shader.create_program((shaders_path + "tex.vert").c_str(), (shaders_path + "tex.frag").c_str());
 	tex_shader3d.create_program((shaders_path + "tex3d.vert").c_str(), (shaders_path + "tex3d.frag").c_str());
-
+	basic_shader.create_program((shaders_path + "basic.vert").c_str(), (shaders_path + "basic.frag").c_str());
 	/* crete a rectangle*/
 	shape s_plane;
 	shape_maker::rectangle(s_plane, 1, 1);
 	s_plane.to_renderable(r_plane);
+	renderable r_cube = shape_maker::cube();
 
 	print_info();
 	/* define the viewport  */
@@ -263,6 +266,16 @@ int main(int argc, char ** argv)
 			glDisable(GL_CULL_FACE);
 			stack.push();
 			stack.mult(tb[0].matrix());
+			
+			glUseProgram(basic_shader.program);
+			glUniformMatrix4fv(basic_shader["uModel"], 1, GL_FALSE, &stack.m()[0][0]);
+			glUniformMatrix4fv(basic_shader["uProj"], 1, GL_FALSE, &proj[0][0]);
+			glUniformMatrix4fv(basic_shader["uView"], 1, GL_FALSE, &view[0][0]);
+			r_cube.bind();
+			glDrawElements(r_cube().mode, r_cube().count, r_cube().itype, 0);
+			glUseProgram(0);
+
+
 			stack.mult(tb[1].matrix());
 			stack.mult(glm::translate(glm::mat4(1.f), glm::vec3(0, plane_y, 0)));
 			 
@@ -289,7 +302,7 @@ int main(int argc, char ** argv)
 			stack.push();
 			stack.mult(tb[0].matrix());
 		//	stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(1.5, 1.0, 1.0)));
-			stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(1 / 128.f, 1 / 256.f,1/256.f)));
+			stack.mult(glm::scale(glm::mat4(1.f), glm::vec3(1 / 64.f, 1 / 128.f,1/128.f)));
 			stack.mult(glm::translate(glm::mat4(1.f), glm::vec3(-64, -128, -128)));
 			glUniformMatrix4fv(rt_shader["uModel_inv"], 1, GL_FALSE, &glm::inverse(stack.m())[0][0]);
 			stack.pop();

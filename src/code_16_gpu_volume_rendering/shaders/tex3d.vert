@@ -10,6 +10,6 @@ out vec3 TexCoords;
 	
 void main()
 {
-    TexCoords =   ((uModelPlane*vec4(aPos, 1.0)).xyz)*0.5+0.5;
+    TexCoords =   ((uModelPlane*vec4(aPos, 1.0)).xyz);
     gl_Position = uProj*uView*uModel*vec4(aPos, 1.0);
 }
