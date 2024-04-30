@@ -11,5 +11,6 @@ uniform mat4 uModel;
 void main(void) 
 { 
 	vColor = aColor;
+	vColor = aPosition/vec3(100.f,10.f,100.f);
     gl_Position = uProj*uView*uModel*vec4(aPosition, 1.0); 
 }
