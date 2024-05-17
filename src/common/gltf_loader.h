@@ -18,6 +18,11 @@ struct gltf_loader {
 	std::vector<GLuint> id_textures;
 	int n_vert, n_tri;
 
+	void reset() {
+		rs.clear();
+		id_textures.clear();
+		n_vert = n_tri = 0;
+	}
 	static std::string GetFilePathExtension(const std::string& FileName) {
 		if (FileName.find_last_of(".") != std::string::npos)
 			return FileName.substr(FileName.find_last_of(".") + 1);
@@ -286,6 +291,7 @@ struct gltf_loader {
 	}
 
 	void load_to_renderable(std::string input_filename, std::vector<renderable> & _renderable, box3 & bbox) {
+		reset();
 		load(input_filename);
 		create_renderable(_renderable, bbox);
 	}
